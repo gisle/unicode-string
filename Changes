@@ -1,6 +1,23 @@
+1998-01-18   Gisle Aas <aas@sn.no>
+
+   Release Unicode-String-2.00
+
+   Renamed package to Unicode-String (moved String modules up in
+   the distribution)
+
+   Export the uhex() constructor function
+
+   Handle assignment of utf16 strings with uneven byte length
+
+   The $u->length now always returns an integer value as it should
+
+   The $u->utf7 encoder bailed out on U+XX0A characters
+
+
+
 1997-07-10   Gisle Aas <aas@sn.no>
 
-   Release 19970710
+   Release Unicode-19970710
 
    Now most basic conversion routines and string manipulation works.
    Documentation is starting to appear.

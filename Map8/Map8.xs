@@ -92,7 +92,7 @@ to8_cb(U16 u, Map8* m, STRLEN *len)
  * is also automatically freed when the magic is freed.
  */
 static int
-map8_magic_free(SV* sv, MAGIC* mg)
+map8_magic_free(pTHX_ SV* sv, MAGIC* mg)
 {
     map8_free((Map8*)mg->mg_obj);
     return 1;

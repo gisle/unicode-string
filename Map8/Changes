@@ -1,3 +1,17 @@
+1999-05-01   Gisle Aas <gisle@aas.no>
+
+   Release 0.06
+
+   Added binmode() at appropriate places.  Patch by
+   Alexander Smishlajev <als@turnhere.com>.
+
+   Fixed the /cp\d+.bin/ mappings.  They where missing a lot
+   of characters.
+
+   Added maps/cp866lr.  Contributed by Alexander Smishlajev.
+
+
+
 1998-07-14   Gisle Aas <aas@sn.no>
 
    Release 0.05

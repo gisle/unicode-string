@@ -183,7 +183,7 @@ README
 diff_iso
 make_rfc1345_maps
 make_unicd_maps
-map8.c
+map8x.c
 map8.h
 map8_bin2txt
 map8_txt2bin

@@ -79,6 +79,7 @@ map_out();
 
 open(ALIASES, ">maps/aliases") || die "Can't write aliases: $!";
 for (sort keys %aliases) {
+    delete $aliases{$_}{$_};  # if we managed to get an alias to ourself
     print ALIASES "$_ ", join(" ", sort keys %{$aliases{$_}}), "\n";
 }
 close(ALIASES);
@@ -88,12 +89,27 @@ close(ALIASES);
 sub map_out
 {
     return unless $charset;
+
+    while ($charset =~ /[^\w\-\.]/) {
+	my $orig = $charset;
+	if ($charset =~ s/:\d+$// ||
+	    $charset =~ s/_\(\d+\)$//)
+	{
+	    push(@aliases, $orig);
+	} else {
+            die "Can't wash $charset\n";
+        }
+    }
+    if ($charset =~ /^ISO_8859-(\d+)$/) {
+	push(@aliases, "iso8859-$1", "8859-$1");
+    }
+
     print STDERR "$charset @aliases\n";
     for (@aliases) {
 	$aliases{$charset}{$_}++;
     }
 
-    open(BINMAP, "| ./map8_txt2bin >'maps/$charset.bin'") or die;
+    open(BINMAP, "| ./map8_txt2bin >maps/$charset.bin") or die;
     for (@map) {
 	my($code, $mne) = @$_;
 	my $x4 = $mnemonics{$mne};

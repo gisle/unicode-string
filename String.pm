@@ -85,12 +85,12 @@ sub _dump_arg
 sub concat
 {
     #_dump_arg("concat", @_);
-    my($self, $other) = @_;
+    my($self, $other, $reversed) = @_;
     my $class = ref($self);
     unless (UNIVERSAL::isa($other, 'Unicode::String')) {
 	$other = Unicode::String->new($other);
     }
-    my $str = $$self . $$other;
+    my $str = $reversed ? $$other . $$self : $$self . $$other;
     bless \$str, $class;
 }
 

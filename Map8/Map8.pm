@@ -70,6 +70,7 @@ sub new
     } else {
 	$self = Unicode::Map8::_new();
     }
+    bless $self, $class if $self;
     print "CREATED $self\n" if $DEBUG && $self;
     $self;
 }
@@ -84,13 +85,13 @@ sub tou
 sub unmapped_to8
 {
     my($self, $code) = @_;
-    NOCHAR();
+    "";
 }
 
 sub unmapped_to16
 {
     my($self, $code) = @_;
-    NOCHAR();
+    "";
 }
 
 1;

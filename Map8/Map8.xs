@@ -55,17 +55,54 @@ method_cb(SV* obj, char* method, U16 u)
 }
 
 
-static U16
-to16_cb(U16 u, Map8* m)
+static U16*
+to16_cb(U8 u, Map8* m, STRLEN *len)
 {
-    return method_cb(m->obj, "unmapped_to16", u);
+    dSP;
+    int n;
+    SV* sv;
+    U16* buf;
+    STRLEN buflen;
+
+    PUSHMARK(sp);
+    XPUSHs(sv_2mortal(newRV_inc(m->obj)));
+    XPUSHs(sv_2mortal(newSViv(u)));
+    PUTBACK;
+
+    n = perl_call_method("unmapped_to16", G_SCALAR);
+    assert(n == 1);
+
+    SPAGAIN;
+    sv = POPs;
+    PUTBACK;
+
+    buf = (U16*)SvPV(sv, buflen);
+    *len = buflen / sizeof(U16);
+    return buf;
 }
 
-static U16
-to8_cb(U16 u, Map8* m)
+static U8*
+to8_cb(U16 u, Map8* m, STRLEN *len)
 {
-    return method_cb(m->obj, "unmapped_to8", u);
+    dSP;
+    int n;
+    SV* sv;
+
+    PUSHMARK(sp);
+    XPUSHs(sv_2mortal(newRV_inc(m->obj)));
+    XPUSHs(sv_2mortal(newSViv(u)));
+    PUTBACK;
+
+    n = perl_call_method("unmapped_to8", G_SCALAR);
+    assert(n == 1);
+
+    SPAGAIN;
+    sv = POPs;
+    PUTBACK;
+
+    return SvPV(sv, *len);
 }
+
 
 
 /* We use '~' magic to attach the Map8* objects to Unicode::Map8
@@ -153,14 +190,6 @@ map8_default_to8(map,...)
 void
 map8_nostrict(map)
 	Map8* map
-
-#ifdef DEBUGGING
-void
-map8_fprint(map, f)
-	Map8* map
-	FILE* f
-
-#endif
 
 U16
 MAP8_BINFILE_MAGIC_HI()

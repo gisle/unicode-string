@@ -10,7 +10,7 @@ require Exporter;
 require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 
-@EXPORT_OK = qw(utf16 utf8 utf7 latin1 uchr);
+@EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr);
 
 $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
 

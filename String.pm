@@ -12,7 +12,7 @@ require DynaLoader;
 
 @EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr);
 
-$VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
+$VERSION = '1.16'; # sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
 
 $UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 
@@ -210,8 +210,8 @@ sub utf7   # rfc1642
 		$old .= utf16($1)->latin1;
 	    }
             elsif (($UTF7_OPTIONAL_DIRECT_CHARS &&
-                    $$self =~ /\G((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)/gc)
-                   || $$self =~ /\G((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)/gc)
+                    $$self =~ /\G((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)/gsc)
+                   || $$self =~ /\G((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)/gsc)
             {
 		#print "Unplain ", utf16($1)->hex, "\n";
 		if ($1 eq "\0+") {
@@ -226,7 +226,8 @@ sub utf7   # rfc1642
 		    # of the base64 char set.
 		}
 	    } else {
-		die "This should not happen " . pos($$self);
+		die "This should not happen, pos=" . pos($$self) .
+                                            ":  "  . $self->hex . "\n";
 	    }
 	}
     }

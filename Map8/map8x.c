@@ -88,22 +88,40 @@ map8_nostrict(Map8* m)
 }
 
 
+static char*
+my_fgets(char* buf, int len, PerlIO* f)
+{
+  int pos = 0;
+  int ch;
+  while (1) {
+    ch = PerlIO_getc(f);
+    if (ch == EOF)
+      break;
+    if (pos < len - 1)
+      buf[pos++] = ch;
+    if (ch == '\n')
+      break;
+  }
+  buf[pos] = '\0';
+  return pos ? buf : 0;
+}
+
 
 Map8*
 map8_new_txtfile(const char *file)
 {
   Map8* m;
   int count = 0;
-  FILE* f;
+  PerlIO* f;
   char buf[512];
 
-  f = fopen(file, "r");
+  f = PerlIO_open(file, "r");
   if (!f)
     return 0;
 
   m = map8_new();
 
-  while (fgets(buf, sizeof(buf), f)) {
+  while (my_fgets(buf, sizeof(buf), f)) {
     char *c1 = buf;
     char *c2;
     long from;
@@ -123,7 +141,7 @@ map8_new_txtfile(const char *file)
     map8_addpair(m, from, to);
     count++;
   }
-  fclose(f);
+  PerlIO_close(f);
 
   if (!count) /* no mappings found */ {
     map8_free(m);
@@ -145,11 +163,11 @@ map8_new_binfile(const char *file)
   FILE* f;
   struct map8_filerec pair[256];
 
-  f = fopen(file, "rb");
+  f = PerlIO_open(file, "rb");
   if (!f)
     return 0;
 
-  if (fread(pair, sizeof(pair[0]), 1, f) != 1 ||
+  if (PerlIO_read(f, pair, sizeof(pair[0])) != sizeof(pair[0]) ||
       pair[0].u8  != htons(MAP8_BINFILE_MAGIC_HI) ||
       pair[0].u16 != htons(MAP8_BINFILE_MAGIC_LO))
   {
@@ -160,8 +178,9 @@ map8_new_binfile(const char *file)
   
   m = map8_new();
 
-  while ( (n = fread(pair, sizeof(pair[0]), sizeof(pair)/sizeof(pair[0]), f)))
+  while ( (n = PerlIO_read(f, pair, sizeof(pair))) > 0)
   {
+    n /= sizeof(pair[0]);
     for (i = 0; i < n; i++) {
       U16 u8  = ntohs(pair[i].u8);
       U16 u16 = ntohs(pair[i].u16);
@@ -170,7 +189,7 @@ map8_new_binfile(const char *file)
       map8_addpair(m, (U8)u8, u16);
     }
   }
-  fclose(f);
+  PerlIO_close(f);
 
   if (!count) /* no mappings found */ {
     map8_free(m);

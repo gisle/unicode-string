@@ -2,13 +2,9 @@ Map8*       T_MAP8
 
 INPUT
 T_MAP8
-        if (sv_derived_from($arg, \"Unicode::Map8\")) {
-            IV tmp = SvIV((SV*)SvRV($arg));
-            $var = ($type) tmp;
-        }
-        else
-            croak(\"$var is not an Unicode::Map8\")
+        $var = find_map8($arg);
 
 OUTPUT
 T_MAP8
-        sv_setref_pv($arg, \"Unicode::Map8\", (void*)$var);
+        sv_setref_iv($arg, \"Unicode::Map8\", 0);
+        attach_map8($arg, $var);

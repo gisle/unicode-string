@@ -263,13 +263,18 @@ sub utf7   # rfc1642
 	    if (s/^((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//) {
 		#print "Plain ", utf16($1)->latin1, "\n";
 		$old .= utf16($1)->latin1;
-	    } else {
-		s/^(..)//s;  # XXX should match as much as possible
+	    } elsif (s/^((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//s) {
 		#print "Unplain ", utf16($1)->hex, "\n";
-		require MIME::Base64;
-		my $base64 = MIME::Base64::encode($1, '');
-		$base64 =~ s/=+$//;
-		$old .= "+$base64-";
+		if ($1 eq "\0+") {
+		    $old .= "+-";
+		} else {
+		    require MIME::Base64;
+		    my $base64 = MIME::Base64::encode($1, '');
+		    $base64 =~ s/=+$//;
+		    $old .= "+$base64-";
+		}
+	    } else {
+		die "This should not happen '$old'";
 	    }
 	}
     }

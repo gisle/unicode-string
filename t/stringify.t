@@ -12,7 +12,11 @@ print "ok 1\n";
 
 Unicode::String::stringify_as("utf8");
 
-print "$u\n";
+print $u->hex, "\n";
+$str = "$u";
+
+
+print "$str\n";
 
 print "not " unless "$u" eq "gjøk";
 print "ok 2\n";

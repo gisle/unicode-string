@@ -112,11 +112,11 @@ if ($after =~ /^(ucs[24]|utf16|utf[78])$/) {
     *out = sub { print $map->to8(${$_[0]}); };
 }
 
-
-if ($before =~ /^utf[78]$/ || -t STDIN) {
+if (-t STDIN || $before =~ /^utf[78]$/) {
     # must read a line at the time (should not break encoded chars)
-    while (<STDIN>) {
-	out(&$bsub($_));
+    my $line;
+    while (defined($line = <STDIN>)) {
+	out(&$bsub($line));
     }
 } else {
     my $n;

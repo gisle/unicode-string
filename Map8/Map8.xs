@@ -30,30 +30,6 @@ extern "C" {
 /* Callbacks are always on and will invoke methods on the
  * Unicode::Map8 object.
  */
-static U16
-method_cb(SV* obj, char* method, U16 u)
-{
-    dSP;
-    int n;
-    U16 ret;
-
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(sp);
-    XPUSHs(sv_2mortal(newRV_inc(obj)));
-    XPUSHs(sv_2mortal(newSViv(u)));
-    PUTBACK;
-
-    n = perl_call_method(method, G_SCALAR);
-
-    SPAGAIN;
-    ret = POPi;
-    PUTBACK;
-    FREETMPS;
-    LEAVE;
-    return ret;
-}
-
 
 static U16*
 to16_cb(U8 u, Map8* m, STRLEN *len)

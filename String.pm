@@ -10,9 +10,9 @@ require Exporter;
 require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 
-@EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr);
+@EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr uhex);
 
-$VERSION = '1.16'; # sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
+$VERSION = '2.00'; # $Id$
 
 $UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 
@@ -40,6 +40,9 @@ my %stringify = (
 
 my $stringify_as = \&utf8;
 
+# some aliases
+*ucs2 = \&utf16;
+*uhex = \&hex;
 
 sub new
 {
@@ -173,7 +176,7 @@ sub utf16
 	$$self = shift;
 	if ((length($$self) % 2) != 0) {
 	    warn "Uneven UTF16 data";
-	    $$self .= '\0';
+	    $$self .= "\0";
 	}
 	if ($$self =~ /^\xFF\xFE/) {
 	    # the string needs byte swapping
@@ -183,7 +186,6 @@ sub utf16
     $old;
 }
 
-*ucs2 = \&utf16;
 
 
 sub utf7   # rfc1642

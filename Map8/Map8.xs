@@ -27,6 +27,47 @@ extern "C" {
 #define map8__new_binfile  map8_new_binfile
 
 
+/* Callbacks are always on and will invoke methods on the
+ * Unicode::Map8 object.
+ */
+static U16
+method_cb(SV* obj, char* method, U16 u)
+{
+    dSP;
+    int n;
+    U16 ret;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(sp);
+    XPUSHs(sv_2mortal(newRV_inc(obj)));
+    XPUSHs(sv_2mortal(newSViv(u)));
+    PUTBACK;
+
+    n = perl_call_method(method, G_SCALAR);
+
+    SPAGAIN;
+    ret = POPi;
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+    return ret;
+}
+
+
+static U16
+to16_cb(U16 u, Map8* m)
+{
+    return method_cb(m->obj, "unmapped_to16", u);
+}
+
+static U16
+to8_cb(U16 u, Map8* m)
+{
+    return method_cb(m->obj, "unmapped_to8", u);
+}
+
+
 /* We use '~' magic to attach the Map8* objects to Unicode::Map8
  * objects.  The pointer to the attached Map8* object is stored in
  * the mg_obj fields of struct magic.  The attached Map8* object
@@ -56,12 +97,18 @@ find_map8(SV* obj)
 static void
 attach_map8(SV* obj, Map8* map8)
 {
+   SV* hv = SvRV(obj);
    MAGIC *m;
-   sv_magic(SvRV(obj), NULL, '~', 0, 666);
-   m = mg_find(SvRV(obj), '~');
+   sv_magic(hv, NULL, '~', 0, 666);
+   m = mg_find(hv, '~');
    if (!m) croak("Can't find back ~ magic");
    m->mg_virtual = &magic_cleanup;
    m->mg_obj = (SV*)map8;
+
+   /* register callbacks */
+   map8->cb_to8  = to8_cb;
+   map8->cb_to16 = to16_cb;
+   map8->obj = (void*)hv;  /* so callbacks can find the object again */
 }
 
 

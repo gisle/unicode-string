@@ -8,6 +8,11 @@ Unicode is distributed with this package.  The source of these tables
 is the vendor mapping tables provided by Unicode, Inc. and the code
 tables in RFC 1345.  New maps can easily be installed.
 
+By coincidence Martin Schwartz created a similar module at the same
+time I did.  His module is called Unicode::Map and should be available
+on CPAN too.  We will try to coordinate our efforts at some time.
+This means that the interface to this class might change.
+
 
 EXAMPLE OF USE
 

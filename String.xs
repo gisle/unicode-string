@@ -27,19 +27,19 @@ latin1(self,...)
 	SV* self
 
 	PREINIT:
-	SV*    new;
+	SV*    newsv;
 	SV*    str;
 
 	CODE:
         RETVAL = 0;
 	if (!sv_isobject(self)) {
-	    new = self;
+	    newsv = self;
 	    RETVAL = self = newSV(0);
 	    newSVrv(self, "Unicode::String");
 	} else if (items > 1) {
-	    new = ST(1);
+	    newsv = ST(1);
         } else {
-	    new = 0;
+	    newsv = 0;
         }
 
 	str = SvRV(self);
@@ -50,7 +50,7 @@ latin1(self,...)
 	    len /= 2;
 	    RETVAL = newSV(len+1);
 	    SvPOK_on(RETVAL);
-	    beg = s = SvPVX(RETVAL);
+	    beg = s = (U8*)SvPVX(RETVAL);
 	    while (len--) {
 	        U16 us = ntohs(*usp++);
                 if (us > 255) {
@@ -67,10 +67,10 @@ latin1(self,...)
             *s='\0';
         }
 
-	if (new) {
+	if (newsv) {
             U16 *usp;
             STRLEN len;
-	    U8 *s = SvPV(new, len);
+	    U8 *s = (U8*)SvPV(newsv, len);
 	    SvGROW(str, len*2 + 2);
 	    SvPOK_on(str);
 	    SvCUR_set(str,len*2);
@@ -91,19 +91,19 @@ ucs4(self,...)
 	SV* self
 
 	PREINIT:
-	SV*    new;
+	SV*    newsv;
 	SV*    str;
 
 	CODE:
 	RETVAL = 0;
 	if (!sv_isobject(self)) {
-	    new = self;
+	    newsv = self;
 	    RETVAL = self = newSV(0);
             newSVrv(self, "Unicode::String");
 	} else if (items > 1) {
-	    new = ST(1);
+	    newsv = ST(1);
         } else {
-	    new = 0;
+	    newsv = 0;
         }
 
 	str = SvRV(self);
@@ -135,9 +135,9 @@ ucs4(self,...)
 	    SvPVX(RETVAL)[SvCUR(RETVAL)] = '\0';
 	}
 
-	if (new) {
+	if (newsv) {
 	    STRLEN len;
-	    U32* from = (U32*)SvPV(new, len);
+	    U32* from = (U32*)SvPV(newsv, len);
 	    len /= 4;
 	    SvGROW(str, len*2 + 1);  /* enough if we don't need surrogates */
 	    SvPOK_on(str);
@@ -179,19 +179,19 @@ utf8(self,...)
 	SV* self
 
 	PREINIT:
-	SV*    new;
+	SV*    newsv;
 	SV*    str;
 
 	CODE:
 	RETVAL = 0;
 	if (!sv_isobject(self)) {
-	    new = self;
+	    newsv = self;
 	    RETVAL = self = newSV(0);
             newSVrv(self, "Unicode::String");
 	} else if (items > 1) {
-	    new = ST(1);
+	    newsv = ST(1);
         } else {
-	    new = 0;
+	    newsv = 0;
         }
 
 	str = SvRV(self);
@@ -217,25 +217,25 @@ utf8(self,...)
                 }
 		if (us < 0x80) {
 		    U8 c = us;
-		    sv_catpvn(RETVAL, &c, 1);
+		    sv_catpvn(RETVAL, (char*)&c, 1);
                 } else if (us < 0x800) {
 		    U8 c[2];
                     c[1] = (us & 0077) | 0200;
                     c[0] = (us >> 6)   | 0300;
-                    sv_catpvn(RETVAL, c, 2);
+                    sv_catpvn(RETVAL, (char*)c, 2);
                 } else if (us < 0x10000) {
 		    U8 c[3];
                     c[2] = (us & 0077) | 0200; us >>= 6;
 		    c[1] = (us & 0077) | 0200; us >>= 6;
 		    c[0] =  us         | 0340;
-	            sv_catpvn(RETVAL, c, 3);
+	            sv_catpvn(RETVAL, (char*)c, 3);
                 } else if (us < 0x200000) {
                     U8 c[4];
                     c[3] = (us & 0077) | 0200; us >>= 6;
                     c[2] = (us & 0077) | 0200; us >>= 6;
 		    c[1] = (us & 0077) | 0200; us >>= 6;
 		    c[0] =  us         | 0360;
-	            sv_catpvn(RETVAL, c, 4);
+	            sv_catpvn(RETVAL, (char*)c, 4);
                 } else {
 		     /* this can't really happen since we start with utf16 */
 	             if (dowarn) warn("Large char (%08X) ignored", us);
@@ -246,10 +246,10 @@ utf8(self,...)
 	    SvPVX(str)[SvCUR(str)] = '\0';
 	}
 
-	if (new) {
+	if (newsv) {
 	    /* decode new */
 	    STRLEN len;
-	    U8* from = SvPV(new, len);
+	    U8* from = (U8*)SvPV(newsv, len);
 	    SvGROW(str, len + 1);  /* must be at least this big */
 	    SvPOK_on(str);
             SvCUR_set(str, 0);
@@ -259,7 +259,7 @@ utf8(self,...)
                 if (u < 0x80) {
                     s[0] = '\0';
                     s[1] = u;
-		    sv_catpvn(str, s, 2);
+		    sv_catpvn(str, (char*)s, 2);
                 } else if ((u & 0340) == 0300) {
                     /* 2 bytes to decode */
 		    if (!len) {
@@ -272,7 +272,7 @@ utf8(self,...)
 			    from++; len--;  /* consume it */
 			    s[0] = (u & 0037) >> 2;
 			    s[1] = ((u & 0003) << 6) | (u2 & 0077);
-			    sv_catpvn(str, s, 2);
+			    sv_catpvn(str, (char*)s, 2);
 			}
 		    }
                 } else if ((u & 0360) == 0340) {
@@ -288,7 +288,7 @@ utf8(self,...)
 			    from += 2; len -= 2; /* consume them */
 			    s[0] = (u  << 4) | (u2 & 0077) >> 2;
 			    s[1] = (u2 << 6) | (u3 & 0077);
-			    sv_catpvn(str, s, 2);
+			    sv_catpvn(str, (char*)s, 2);
 			}
                     }
                 } else if ((u & 0370) == 0360) {

@@ -1,4 +1,6 @@
 blib
 Makefile
 pm_to_blib
+String.c
+String.bs
 .cvsignore

@@ -156,14 +156,13 @@ U16* map8_to_str16(Map8* m, U8* str8, U16* str16, int len, int* rlen)
   while (len--) {
     U16 c = map8_to_char16(m, *str8);
     if (c != NOCHAR) {
-      *tmp16++ = c;
+      *tmp16++ = htons(c);
     } else {
       if (m->nomap8) {
 	c = (m->nomap8)(*str8);
 	if (c != NOCHAR)
-	  *tmp16++ = c;
+	  *tmp16++ = htons(c);
       }
-      /* XXX do something here */
     }
     str8++;
   }
@@ -191,12 +190,17 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
   }
   tmp8 = str8;
   while (len--) {
-    U16 c = map8_to_char8(m, *str16++);
+    U16 c = map8_to_char8(m, ntohs(*str16));
     if (c != NOCHAR && c <= 0xFF) {
       *tmp8++ = (U8)c;
     } else {
-      /* XXX do something here */
+      if (m->nomap16) {
+	c = (m->nomap16)(ntohs(*str16));
+	if (c != NOCHAR && c <= 0xFF)
+	  *tmp8++ = (U8)c;
+      }
     }
+    *str16++;
   }
   *tmp8 = '\0';  /* NUL terminate */
   if (rlen) {
@@ -212,11 +216,11 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
 void
 map8_print(Map8* m)
 {
-  map8_fprint(stdout, m);
+  map8_fprint(m, stdout);
 }
 
 void
-map8_fprint(FILE* f, Map8* m)
+map8_fprint(Map8* m, FILE* f)
 {
   int i, j;
   long size = 0;

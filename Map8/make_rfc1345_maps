@@ -4,12 +4,27 @@ open(RFC, "rfc1345.txt") || die;
 
 my %mnemonics;
 my %fullname;
+my %aliases;
 
 my $charset;
 my @aliases;
 my $code;
 my @map;
 
+unless (-d "maps") {
+    print STDERR "Making directory 'maps'\n";
+    mkdir('maps', 0777) || die "Can't create directory: $!";
+}
+
+if (open(ALIASES, "maps/aliases")) {
+    while (<ALIASES>) {
+	next if /^\s*\#/;
+	next if /^\s*$/;
+	chomp;
+	my($charset, @aliases) = split(' ', $_);
+	$aliases{$charset} = { map {$_ => 1} @aliases };
+    }
+}
 
 while (<RFC>) {
     if (/^3\.\s/ .. /^4\.\s/) {  # only want chapter 3
@@ -62,12 +77,23 @@ while (<RFC>) {
 }
 map_out();
 
+open(ALIASES, ">maps/aliases") || die "Can't write aliases: $!";
+for (sort keys %aliases) {
+    print ALIASES "$_ ", join(" ", sort keys %{$aliases{$_}}), "\n";
+}
+close(ALIASES);
+
+
+
 sub map_out
 {
     return unless $charset;
     print STDERR "$charset @aliases\n";
+    for (@aliases) {
+	$aliases{$charset}{$_}++;
+    }
 
-    open(BINMAP, "| ./txt2bin >'mapping/$charset.bin'") or die;
+    open(BINMAP, "| ./map8_txt2bin >'maps/$charset.bin'") or die;
     for (@map) {
 	my($code, $mne) = @$_;
 	my $x4 = $mnemonics{$mne};
@@ -84,3 +110,4 @@ sub map_out
     close(BINMAP);
     
 }
+

@@ -5,4 +5,7 @@ String/Makefile.PL
 String/String.pm
 String/String.xs
 Unicode/CharName.pm
-t/unicode.t
+t/charname.t
+t/ord.t
+t/string.t
+t/stringify.t

@@ -207,6 +207,7 @@ package.
    cp864 DOSArabic
    cp865 DOSNordic
    cp866 DOSCyrillicRussian
+   cp866lr DOSCyrillicLatvian
    cp869 DOSGreek2
    cp874 DOSThai
    cp875 IBMGreek

@@ -38,7 +38,7 @@ sub utf16
 sub ucs4
 {
     my $self = shift;
-    pack("N*", unpack("n*", $$self));  # XXX: surrogates
+    pack("N*", $self->ord);
 }
 
 
@@ -145,19 +145,53 @@ sub length
 }
 
 
+sub unpack
+{
+    my $self = shift;
+    unpack("n*", $$self)
+}
+
+
+sub pack
+{
+    my $self = shift;
+    pack("n*", $$self, @_);
+    $self;
+}
+
+
 sub ord
 {
     my $self = shift;
-    return undef unless defined $$self;
-    my ($first, $second) = unpack("n2", $$self);
-    if ($first >= 0xD800 && $first <= 0xDFFF) { 	# surrogate
-	if ($first >= 0xDC00 || $second < 0xDC00 || $second > 0xDFFF) {
-	    carp "Bad surrogate pair";
-	    return undef;
-	}
-	return ($first - 0xD800) * 0x400 + ($second - 0xDC00) + 0x10000;
+    return () unless defined $$self;
+
+    my $array = wantarray;
+    my @ret;
+    my @chars;
+    if ($array) {
+        @chars = unpack("n*", $$self);
+    } else {
+	@chars = unpack("n2", $$self);
     }
-    $first;
+
+    while (@chars) {
+	my $first = shift(@chars);
+	if ($first >= 0xD800 && $first <= 0xDFFF) { 	# surrogate
+	    my $second = shift(@chars);
+	    #print "F=$first S=$second\n";
+	    if ($first >= 0xDC00 || $second < 0xDC00 || $second > 0xDFFF) {
+		carp(sprintf("Bad surrogate pair (U+%04x U+%04x)",
+			     $first, $second));
+		unshift(@chars, $second);
+		next;
+	    }
+	    push(@ret, ($first-0xD800)*0x400 + ($second-0xDC00) + 0x10000);
+	} else {
+	    push(@ret, $first);
+	}
+	last unless $array;
+    }
+    $array ? @ret : $ret[0];
 }
 
 

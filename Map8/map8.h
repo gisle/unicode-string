@@ -9,11 +9,20 @@
 
 #ifdef PERL
 #include "EXTERN.h"
+#include "XSUB.h"
 #include "perl.h"
 #else
 typedef unsigned long   U32;
 typedef unsigned short  U16;
 typedef unsigned char   U8;
+#endif
+
+#ifndef pTHX_
+   #define pTHX_
+#endif
+
+#ifndef dTHX
+   #define dTHX extern int errno
 #endif
 
 struct map8;

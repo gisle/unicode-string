@@ -1,6 +1,6 @@
-print "1..21\n";
+print "1..28\n";
 
-use Unicode::String qw(latin1 ucs4 utf8 utf16);
+use Unicode::String qw(latin1 ucs4 utf16 utf8 utf7);
 
 #use Devel::Dump;
 
@@ -126,3 +126,113 @@ print $u->hex, "\n";
 
 print "not " unless $u->utf8 eq "abcdef";
 print "ok 21\n";
+
+
+#--- Test UTF7 encoding ---
+
+# Examples from RFC 1642...
+#
+#      Example. The Unicode sequence "A<NOT IDENTICAL TO><ALPHA>."
+#      (hexadecimal 0041,2262,0391,002E) may be encoded as follows:
+#
+#            A+ImIDkQ.
+#
+#      Example. The Unicode sequence "Hi Mom <WHITE SMILING FACE>!"
+#      (hexadecimal 0048, 0069, 0020, 004D, 006F, 004D, 0020, 263A, 0021)
+#      may be encoded as follows:
+#
+#            Hi Mom +Jjo-!
+
+$u = utf7("A+ImIDkQ.");
+print "HEX: ", $u->hex, "\n";
+print "UTF7: ", $u->utf7, "\n";
+print "not " unless $u->hex eq "U+0041 U+2262 U+0391 U+002e";
+print "ok 22\n";
+
+$utf7 = $u->utf7("Hi Mom +Jjo-!");
+print "not " unless $utf7 =~ /^A\+ImIDkQ-?\.$/;
+print "ok 23\n";
+
+print "HEX: ", $u->hex, "\n";
+print "UTF7: ", $u->utf7, "\n";
+
+print "not " unless $u->hex eq "U+0048 U+0069 U+0020 U+004d U+006f U+006d U+0020 U+263a U+0021";
+print "ok 24\n";
+
+print "not " unless $u->utf7 eq "Hi Mom +Jjo-!" || $u->utf7 eq "Hi Mom +JjoAIQ-";
+print "ok 25\n";
+
+#      Example. The Unicode sequence representing the Han characters for
+#      the Japanese word "nihongo" (hexadecimal 65E5,672C,8A9E) may be
+#      encoded as follows:
+
+$u = utf7("+ZeVnLIqe-");
+print "not " unless $u->hex eq "U+65e5 U+672c U+8a9e";
+print "ok 26\n";
+print "not " unless $u->utf7 eq "+ZeVnLIqe-";
+print "ok 27\n";
+
+# Appendix A -- Examples
+#
+#   Here is a longer example, taken from a document originally in Big5
+#   code. It has been condensed for brevity. There are two versions: the
+#   first uses optional characters from set O (and thus may not pass
+#   through some mail gateways), and the second uses no optional
+#   characters.
+
+$text = <<'EOT';
+   Below is the full Chinese text of the Analects (+itaKng-).
+
+   The sources for the text are:
+
+   "The sayings of Confucius," James R. Ware, trans.  +U/BTFw-:
+   +ZYeB9FH6ckh5Pg-, 1980.  (Chinese text with English translation)
+
+   +Vttm+E6UfZM-, +W4tRQ066bOg-, +UxdOrA-:  +Ti1XC2b4Xpc-, 1990.
+
+   "The Chinese Classics with a Translation, Critical and
+   Exegetical Notes, Prolegomena, and Copius Indexes," James
+   Legge, trans., Taipei:  Southern Materials Center Publishing,
+   Inc., 1991.  (Chinese text with English translation)
+
+   Big Five and GB versions of the text are being made available
+   separately.
+
+   Neither the Big Five nor GB contain all the characters used in
+   this text.  Missing characters have been indicated using their
+   Unicode/ISO 10646 code points.  "U+-" followed by four
+   hexadecimal digits indicates a Unicode/10646 code (e.g.,
+   U+-9F08).  There is no good solution to the problem of the small
+   size of the Big Five/GB character sets; this represents the
+   solution I find personally most satisfactory.
+
+   (omitted...)
+
+   I have tried to minimize this problem by using variant
+   characters where they were available and the character
+   actually in the text was not.  Only variants listed as such in
+   the +XrdxmVtXUXg- were used.
+
+   (omitted...)
+
+   John H. Jenkins
+   +TpVPXGBG-
+   John_Jenkins@taligent.com
+   5 January 1993
+EOT
+
+$u = utf7($text);
+$utf = $u->utf7;
+
+unless ($utf eq $text) {
+   print $u->length, " $utf\n";
+   open(F, ">utf7-$$.orig"); print F $text;
+   open(F, ">utf7-$$.enc");  print F $utf;
+   close(F);
+   system("diff -u0 utf7-$$.orig utf7-$$.enc");
+   unlink("utf7-$$.orig", "utf7-$$.enc");
+}
+
+print "not " unless $utf eq $text;
+print "ok 28\n";
+

@@ -110,6 +110,7 @@ my_fgets(char* buf, int len, PerlIO* f)
 Map8*
 map8_new_txtfile(const char *file)
 {
+  dTHX;
   Map8* m;
   int count = 0;
   PerlIO* f;
@@ -156,6 +157,7 @@ map8_new_txtfile(const char *file)
 Map8*
 map8_new_binfile(const char *file)
 {
+  dTHX;
   Map8* m;
   int count = 0;
   int n;
@@ -308,6 +310,7 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
 
 U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
 {
+  dTHX;
   U8* tmp;
   U16 uc;
   U16 u8;  /* need U16 to represent NOCHAR */

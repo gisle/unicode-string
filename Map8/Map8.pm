@@ -16,11 +16,11 @@ $VERSION = '0.01';  # $Id$
 
 bootstrap Unicode::Map8 $VERSION;
 
-$MAPS_DIR;  # where to locate map files
-%ALIASES;   # alias names
+#$MAPS_DIR;  # where to locate map files
+#%ALIASES;   # alias names
 
 # Try to locate the maps directory, and read the aliases file
-for (split(':', $ENV{MAPS_PATH}),
+for (split(':', $ENV{MAPS_PATH} || ""),
      (map "$_/Unicode/Map8/maps", @INC),
      "."
     )

@@ -1,3 +1,12 @@
+1999-09-14   Gisle Aas <gisle@aas.no>
+
+   Release 2.04
+
+   Added a byteswap method.  Also the functions byteswap2() and
+   byteswap4() are made available.
+
+
+
 1999-07-28   Gisle Aas <gisle@aas.no>
 
    Release 2.03

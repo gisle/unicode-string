@@ -12,9 +12,10 @@ extern "C" {
 
 #include "map8.h"
 
-#define map8__new        map8_new
-#define map8__new_file   map8_new_file
-#define map8__free       map8_free
+#define map8__new          map8_new
+#define map8__new_txtfile  map8_new_txtfile
+#define map8__new_binfile  map8_new_binfile
+#define map8__free         map8_free
 
 
 
@@ -26,7 +27,11 @@ Map8*
 map8__new()
 
 Map8*
-map8__new_file(filename)
+map8__new_txtfile(filename)
+	char*filename
+
+Map8*
+map8__new_binfile(filename)
 	char*filename
 
 void

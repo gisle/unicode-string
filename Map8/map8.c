@@ -77,11 +77,10 @@ map8_nostrict(Map8* m)
 
 
 Map8*
-map8_new_file(const char *file)
+map8_new_txtfile(const char *file)
 {
   Map8* m;
   int count = 0;
-  U16 map8[256];
   FILE* f;
   char buf[512];
 
@@ -110,6 +109,53 @@ map8_new_file(const char *file)
 
     map8_addpair(m, from, to);
     count++;
+  }
+  fclose(f);
+
+  if (!count) /* no mappings found */ {
+    map8_free(m);
+    return 0;
+  }
+
+  return m;
+}
+
+
+
+Map8*
+map8_new_binfile(const char *file)
+{
+  Map8* m;
+  int count = 0;
+  int n;
+  int i;
+  FILE* f;
+  struct map8_filerec pair[256];
+
+  f = fopen(file, "r");
+  if (!f)
+    return 0;
+
+  if (fread(pair, sizeof(pair[0]), 1, f) != 1 ||
+      pair[0].u8  != htons(MAP8_BINFILE_MAGIC_HI) ||
+      pair[0].u16 != htons(MAP8_BINFILE_MAGIC_LO))
+  {
+    /* fprintf(stderr, "Bad magic\n"); */
+    fclose(f);
+    return 0;
+  }
+  
+  m = map8_new();
+
+  while ( (n = fread(pair, sizeof(pair[0]), sizeof(pair)/sizeof(pair[0]), f)))
+  {
+    for (i = 0; i < n; i++) {
+      U16 u8  = ntohs(pair[i].u8);
+      U16 u16 = ntohs(pair[i].u16);
+      if (u8 > 255) continue;
+      count++;
+      map8_addpair(m, (U8)u8, u16);
+    }
   }
   fclose(f);
 

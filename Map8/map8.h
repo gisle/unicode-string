@@ -19,13 +19,23 @@ typedef struct map8
   nochar_cb  nomap16;
 } Map8;
 
+struct map8_filerec
+{
+  U16  u8;  /* big endinan format */
+  U16 u16;
+};
+
+#define MAP8_BINFILE_MAGIC_HI 0xFFFE
+#define MAP8_BINFILE_MAGIC_LO 0x0001
+
 #define NOCHAR  0xFFFF
 #define map8_to_char16(m,c)   m->to_16[c]
 #define map8_to_char8(m,c)    m->to_8[c>>8][c&0xFF]
 
 /* Prototypes */
 Map8* map8_new(void);
-Map8* map8_new_file(const char*);
+Map8* map8_new_txtfile(const char*);
+Map8* map8_new_binfile(const char*);
 void map8_addpair(Map8*, U8, U16);
 void map8_nostrict(Map8*);
 void map8_free(Map8*);

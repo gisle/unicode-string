@@ -10,7 +10,7 @@ require Exporter;
 require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 
-@EXPORT_OK = qw(utf8 latin1);
+@EXPORT_OK = qw(utf8 latin1 uchr);
 
 $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
 
@@ -38,7 +38,7 @@ sub utf16
 sub ucs4
 {
     my $self = shift;
-    pack("N*", unpack("n*", $$self));
+    pack("N*", unpack("n*", $$self));  # XXX: surrogates
 }
 
 
@@ -133,7 +133,7 @@ sub hex
     my $self = shift;
     return undef unless defined($$self);
     my $str = unpack("H*", $$self);
-    $str =~ s/(....)/$1 /g;
+    $str =~ s/(....)/U+$1 /g;
     $str;
 }
 
@@ -149,20 +149,37 @@ sub ord
 {
     my $self = shift;
     return undef unless defined $$self;
-    unpack("n", $$self);
+    my ($first, $second) = unpack("n2", $$self);
+    if ($first >= 0xD800 && $first <= 0xDFFF) { 	# surrogate
+	if ($first >= 0xDC00 || $second < 0xDC00 || $second > 0xDFFF) {
+	    carp "Bad surrogate pair";
+	    return undef;
+	}
+	return ($first - 0xD800) * 0x400 + ($second - 0xDC00) + 0x10000;
+    }
+    $first;
 }
 
 
-sub chr
+sub uchr
 {
     my($self,$val) = @_;
     unless (ref $self) {
 	# act as ctor
 	my $u = new Unicode::String;
-	$u->chr($self);
-	return $u;
+	return $u->uchr($self);
     }
-    $$self = pack("n", $val);
+    if ($val > 0xFFFF) {
+	# must be represented by a surrogate pair
+	return undef if $val > 0x10FFFF;  # Unicode limit
+	$val -= 0x10000;
+	my $h = int($val / 0x400) + 0xD800;
+	my $l = ($val % 0x400) + 0xDC00;
+	$$self = pack("n2", $h, $l);
+    } else {
+	$$self = pack("n", $val);
+    }
+    $self;
 }
 
 

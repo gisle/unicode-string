@@ -19,6 +19,7 @@ uname() function will return the Unicode character name for the given
 code (a number between 0 and 0x10FFFF).  Unicode character names are
 written in upper-case ASCII letters, and are strings like:
 
+  LATIN CAPITAL LETTER A
   LATIN SMALL LETTER A WITH RING ABOVE
   CJK UNIFIED IDEOGRAPH 7C80
   HANGUL SYLLABLE PWILH

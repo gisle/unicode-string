@@ -10,9 +10,9 @@ require Exporter;
 require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 
-@EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr uhex);
+@EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr uhex byteswap2 byteswap4);
 
-$VERSION = '2.03'; # $Id$
+$VERSION = '2.04'; # $Id$
 
 $UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 
@@ -297,6 +297,12 @@ sub length
     int(length($$self) / 2);
 }
 
+sub byteswap
+{
+   my $self = shift;
+   byteswap2($$self);
+   $self;
+}
 
 sub unpack
 {
@@ -695,6 +701,19 @@ operation is overloaded as the assignment operator.
 Returns the length of the I<Unicode::String>.  Surrogate pairs are
 still counted as 2.
 
+=item $us->byteswap;
+
+This method will swap the bytes in the internal representation of the
+I<Unicode::String> object.
+
+Unicode reserve the character U+FEFF character as a byte order mark.
+This works because the swapped character, U+FFFE, is reserved to not
+be valid.  For strings that have the byte order mark as the first
+character, we can guaranty to get the byte order right with the
+following code:
+
+   $ustr->byteswap if $ustr->ord == 0xFFFE;
+
 =item $us->unpack;
 
 Returns a list of integers each representing an UTF-16 character code.
@@ -738,6 +757,29 @@ search at position $pos.
 
 Chops off the last character of $us and returns it (as a
 I<Unicode::String> object).
+
+=back
+
+=head1 FUNCTIONS
+
+The following utility functions are provided.  They will be exported
+on request.
+
+=over 4
+
+=item byteswap2($str, ...)
+
+This function will swap 2 and 2 bytes in the strings passed as
+arguments.  This can be used to fix up UTF-16 or UCS-2 strings from
+litle-endian systems.  If this function is called in void context,
+then it will modify its arguments in-place.  Otherwise, then swapped
+strings are returned.
+
+=item byteswap4($str, ...)
+
+The byteswap4 function works similar to byteswap2, but will reverse
+the order of 4 and 4 bytes.  Can be used to fix litle-endian UCS-4
+strings.
 
 =back
 

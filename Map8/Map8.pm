@@ -6,15 +6,42 @@ package Unicode::Map8;
 # modify it under the same terms as Perl itself.
 
 use strict;
-use vars qw($VERSION @ISA $DEBUG);
+use vars qw($VERSION @ISA $DEBUG $MAPS_DIR %ALIASES);
 
 require DynaLoader;
 @ISA=qw(DynaLoader);
 
 $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
-$DEBUG++;
+#$DEBUG++;
 
 bootstrap Unicode::Map8 $VERSION;
+
+$MAPS_DIR;  # where to locate map files
+%ALIASES;   # alias names
+
+# Try to locate the maps directory, and read the aliases file
+for (split(':', $ENV{MAPS_PATH}),
+     (map "$_/Unicode/Map8/maps", @INC),
+     "./maps", ".")
+{
+    if (open(ALIASES, "$_/aliases")) {
+	$MAPS_DIR = $_;
+	local($_);
+	while (<ALIASES>) {
+	    next if /^\s*\#/;
+	    chomp;
+	    my($charset, @aliases) = split(' ', $_);
+	    next unless $charset;
+	    my $alias;
+	    for $alias (@aliases) {
+		$ALIASES{$alias} = $charset;
+	    }
+	}
+	close(ALIASES);
+	last;
+    }
+}
+$MAPS_DIR ||= ".";
 
 sub new
 {
@@ -27,15 +54,17 @@ sub new
 	} elsif ($file =~ /\.txt$/) {
 	    $self = Unicode::Map8::_new_txtfile($file);
 	} else {
-	    $self = Unicode::Map8::_new_binfile($file) ||
-		    Unicode::Map8::_new_txtfile($file) ||
-		    Unicode::Map8::_new_binfile("$file.bin") ||
-		    Unicode::Map8::_new_txtfile("$file.txt");
+	    my $charset = $ALIASES{$file} || $file;
+	    $file = "$MAPS_DIR/$charset";
+	    $self = Unicode::Map8::_new_binfile("$file.bin") ||
+		    Unicode::Map8::_new_txtfile("$file.txt") ||
+		    Unicode::Map8::_new_binfile("$file")     ||
+		    Unicode::Map8::_new_txtfile("$file");
 	}
     } else {
 	$self = Unicode::Map8::_new();
     }
-    print "CREATED $self\n" if $DEBUG;
+    print "CREATED $self\n" if $DEBUG && $self;
     $self;
 }
 

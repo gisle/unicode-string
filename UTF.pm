@@ -1,7 +1,17 @@
 package Convert::UTF;
+
+use strict;
 use XSLoader ();
 
-$VERSION = "0.01";
+require Exporter;
+*import = \&Exporter::import;
+
+our @EXPORT = qw(encode_utf8  decode_utf8  is_valid_utf8
+                 encode_utf16 decode_utf16 is_valid_utf16
+                 encode_utf32 decode_utf32 is_valid_utf32
+                );
+
+our $VERSION = "0.01";
 XSLoader::load 'Convert::UTF', $VERSION;
 
 1;

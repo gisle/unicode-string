@@ -1,3 +1,13 @@
+1998-01-20   Gisle Aas <aas@sn.no>
+
+   Release 2.01
+
+   Improved the documentation of Unicode::String
+
+   Only warn when $^W is TRUE
+
+
+
 1998-01-19   Gisle Aas <aas@sn.no>
 
    Release Unicode-String-2.00

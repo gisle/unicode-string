@@ -28,8 +28,8 @@ EXAMPLE OF USE
 
 INSTALLATION
 
-I recommend that you first install the Unicode perl module. Once this
-is accomplished you just perform the usual steps:
+I recommend that you first install the Unicode-String Perl
+module. Once this is accomplished you just perform the usual steps:
 
    perl Makefile.PL
    make

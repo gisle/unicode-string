@@ -188,6 +188,7 @@ map8.h
 map8_bin2txt
 map8_txt2bin
 rfc1345.txt
+t/callback.t
 t/map8.t
 t/unistr.t
 typemap

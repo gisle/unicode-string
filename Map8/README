@@ -1,5 +1,6 @@
-This is software under construction.  Not even alpha state right now.
-Programming interfaces will change.
+THIS IS SOFTWARE UNDER CONSTRUCTION.  NOT EVEN ALPHA STATE RIGHT NOW.
+PROGRAMMING INTERFACES WILL CHANGE.
+#####################################################################
 
 
 Unicode::Map8
@@ -16,17 +17,19 @@ EXAMPLE OF USE
 
    require Unicode::Map8;
    $no_map = Unicode::Map8->new("ISO646-NO") || die;
-   $l1_map = Unicode::Map8->new("latin1") || die;
+   $l1_map = Unicode::Map8->new("WinLatin1") || die;
 
-   my $ustr = $no_map->to16("V}re norske tegn b|r {res");
+   my $ustr = $no_map->to16("V}re norske tegn b|r {res\n");
    my $lstr = $l1_map->to8($ustr);
-   print "$lstr\n";
+   print $lstr;
+
+   print $l1_map->recode8($no_map, $lstr);
 
 
 INSTALLATION
 
-You should first install the Unicode perl module. Once this is
-accomplished you just perform the usual steps:
+I recommend that you first install the Unicode perl module. Once this
+is accomplished you just perform the usual steps:
 
    perl Makefile.PL
    make

@@ -8,5 +8,8 @@ WriteMakefile(
     'DEFINE'	   => '-DPERL',
     'INC'	   => '',
     'OBJECT'       => q[Map8$(OBJ_EXT) map8x$(OBJ_EXT)],
+    'PREREQ_PM'    => {	
+	                 'Unicode::String' => 2.00,
+		      },
     dist           => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
 );

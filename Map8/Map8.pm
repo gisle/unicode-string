@@ -21,7 +21,15 @@ sub new
     my $class = shift;
     my $self;
     if (@_) {
-	$self = Unicode::Map8::_new_file(shift);
+	my $file = shift;
+	if ($file =~ /\.bin$/) {
+	    $self = Unicode::Map8::_new_binfile($file);
+	} elsif ($file =~ /\.txt$/) {
+	    $self = Unicode::Map8::_new_txtfile($file);
+	} else {
+	    $self = Unicode::Map8::_new_binfile($file) ||
+		    Unicode::Map8::_new_txtfile($file);
+	}
     } else {
 	$self = Unicode::Map8::_new();
     }

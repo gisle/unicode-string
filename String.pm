@@ -165,6 +165,10 @@ sub utf16
     my $old = $$self;
     if (@_) {
 	$$self = shift;
+	if ($$self =~ /^\xFF\xFE/) {
+	    # the string needs byte swapping
+	    $$self = pack("n*", unpack("v*", $$self));
+	}
     }
     $old;
 }

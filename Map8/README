@@ -15,6 +15,7 @@ This means that the interface to this class might change.
 
 Since UTF8 support is comming to Perl soon, there might be good
 reasons to move this module in the direction of mapping to/from UTF8.
+>>TODO
 
 
 EXAMPLE OF USE
@@ -217,6 +218,8 @@ package.
    greek7-old iso-ir-18
    hp-roman8 r8 roman8
    iso-ir-90
+   koi8-r
+   koi8-u
    latin-greek iso-ir-19
    latin-lap iso-ir-158 lap
    latin6 iso-ir-157 l6

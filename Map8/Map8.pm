@@ -81,6 +81,18 @@ sub tou
     Unicode::String::utf16($self->to16(@_));
 }
 
+sub unmapped_to8
+{
+    my($self, $code) = @_;
+    NOCHAR();
+}
+
+sub unmapped_to16
+{
+    my($self, $code) = @_;
+    NOCHAR();
+}
+
 1;
 
 __END__

@@ -1,3 +1,17 @@
+1999-09-14   Gisle Aas <gisle@aas.no>
+
+   Release 0.08
+
+   A little patch to Makefile.PL from Andreas König that makes the
+   umap program install by default.
+
+   Added some Unicode::Map8 compatibility stuff to the interface.
+   The constructor can now take a hash argument with the hash element
+   'ID' specifying the coding.  The method names from_unicode() and
+   to_unicode() are now aliases for to8() and to16().
+
+
+
 1999-06-02   Gisle Aas <gisle@aas.no>
 
    Release 0.07

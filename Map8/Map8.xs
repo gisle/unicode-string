@@ -1,4 +1,11 @@
-/* Copyright 1998 Gisle Aas. */
+/* $Id$
+ *
+ * Copyright 1998, Gisle Aas.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the same terms as Perl itself.
+ */
+
 
 #ifdef __cplusplus
 extern "C" {

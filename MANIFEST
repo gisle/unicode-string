@@ -5,6 +5,7 @@ README
 String.pm
 String.xs
 lib/Unicode/CharName.pm
+t/byteswap.t
 t/charname.t
 t/encoding.t
 t/ord.t

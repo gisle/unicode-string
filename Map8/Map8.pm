@@ -15,7 +15,7 @@ require Exporter;
 *import = \&Exporter::import;
 @EXPORT_OK = qw(NOCHAR MAP8_BINFILE_MAGIC_HI MAP8_BINFILE_MAGIC_LO);
 
-$VERSION = '0.03';  # $Id$
+$VERSION = '0.04';  # $Id$
 #$DEBUG++;
 
 bootstrap Unicode::Map8 $VERSION;
@@ -199,12 +199,49 @@ sets.
 =item $m->to_char16( $u8 )
 
 Maps a single 8-bit character code to an 16-bit code.  If the 8-bit
-character is unmapped then the constant NOCHAR is returned.
+character is unmapped then the constant NOCHAR is returned.  The
+default is not used and the callback method is not invoked.
 
 =item $m->to_char8( $u16 )
 
 Maps a single 16-bit character code to an 8-bit code. If the 16-bit
-character is unmapped then the constant NOCHAR is returned.
+character is unmapped then the constant NOCHAR is returned.  The
+default is not used and the callback method is not invoked.
+
+=back
+
+The following callback methods are available.  You can override these
+methods by creating a subclass of Unicode::Map8.
+
+=over 4
+
+=item $m->unmapped_to8
+
+When mapping to 8-bit character string and there is no mapping defined
+(and no default either), then this method is called as the last
+resort.  It is called with a single integer argument which is the code
+of the unmapped 16-bit character.  It is expected to return a string
+that will be incorporated in the 8-bit string.  The default version of
+this method always returns an empty string.
+
+Example:
+
+ package MyMapper;
+ @ISA=qw(Unicode::Map8);
+ 
+ sub unmapped_to8
+ {
+    my($self, $code) = @_;
+    require Unicode::CharName;
+    "<" . Unicode::CharName::uname($code) . ">";
+ }
+
+=item $m->unmapped_to16
+
+Likewise when mapping to 16-bit character string and no mapping is
+defined then this method is called.  It should return a 16-bit string
+with the bytes in network byte order.  The default version of
+this method always returns an empty string.
 
 =back
 
@@ -249,7 +286,8 @@ Does not handle Unicode surrogate pairs as a single character.
 
 =head1 SEE ALSO
 
-L<umap(1)>
+L<umap(1)>,
+L<Unicode::String>
 
 =head1 COPYRIGHT
 

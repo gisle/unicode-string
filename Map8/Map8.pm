@@ -1,6 +1,6 @@
 package Unicode::Map8;
 
-# Copyright (c) 1998, Gisle Aas.
+# Copyright 1998, Gisle Aas.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
@@ -138,19 +138,27 @@ the second is the corresponding code value in the 16-bit character
 set.  The same codes can be used multiple times (but not the same
 pair).  The first definition for a code is the one that is used.
 
-Concider the following example:
+Consider the following example:
 
   $m->addpair(0x20, 0x0020);
   $m->addpair(0x20, 0x00A0);
   $m->addpair(0xA0, 0x00A0);
 
 It means that the character 0x20 and 0xA0 in the 8-bit charset maps to
-themself in the 16-bit set, but in the 16-bit character set 0x0A0 maps
+themselves in the 16-bit set, but in the 16-bit character set 0x0A0 maps
 to 0x20.
 
 =item $m->default_to8( $u8 )
 
+Set the code of default character to use when mapping from 16-bit to
+8-bit strings.  If there is no mapping pair defined for a character
+then this default is used by to8() and recode8().
+
 =item $m->default_to16( $u16 )
+
+Set the code of default character to use when mapping from 8-bit to
+16-bit strings. If there is no mapping pair defined for a character
+then this default is used by to16(), tou() and recode8().
 
 =item $m->nostrict;
 
@@ -190,7 +198,7 @@ Maps a 16-bit character code to an 8-bit code.
 
 =item $m->fprint( FILE );
 
-If the extention is compiled with the -DDEBUGGING option, then this
+If the extension is compiled with the -DDEBUGGING option, then this
 method is available.  It prints a summary of the content of the
 mapping table on the specified file handle.
 
@@ -198,7 +206,7 @@ mapping table on the specified file handle.
 
 =head1 BUGS
 
-Does not know how to handle Unicode surugates.
+Does not handle Unicode surrogate pairs as a single character.
 
 =head1 COPYRIGHT
 

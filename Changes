@@ -1,3 +1,12 @@
+1999-11-17   Gisle Aas <gisle@aas.no>
+
+   Release 2.05
+
+   Operator "." failed when a normal string was concatenated with
+   and Unicode::String object.  Patch by Ilya Ketris <ilya@gde.to>.
+
+
+
 1999-09-14   Gisle Aas <gisle@aas.no>
 
    Release 2.04

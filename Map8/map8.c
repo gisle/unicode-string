@@ -43,6 +43,7 @@ map8_new()
   m->cb_to16  = 0;
 
   num_maps++;
+  /* fprintf(stderr, "New %p (%d created)\n", m, num_maps); */
   return m;
 }
 
@@ -194,6 +195,7 @@ map8_free(Map8* m)
     free(nochar_map);
     nochar_map = 0;
   }
+  /* fprintf(stderr, "Freeing %p (%d left)\n", m, num_maps); */
 }
 
 

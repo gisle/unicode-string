@@ -2,6 +2,8 @@
 
 my $cdroot = shift || "CD";
 die "Need Unicode-CD location as argument\n" unless -d "$cdroot/mappings";
+# The content of the Unicode-CD is also available from
+#          ftp://ftp.unicode.org/Public
 
 unless (-d "maps") {
     print STDERR "Making directory 'maps'\n";

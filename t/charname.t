@@ -6,7 +6,7 @@ use Unicode::CharName qw(ublock uname);
 #print ublock(ord("å")), "\n";
 
 # Test a few simple names
-print "not " unless uname(ord("\$") eq "DOLLAR");
+print "not " unless uname(ord("\$")) eq "DOLLAR SIGN";
 print "ok 1\n";
 
 print "not " unless uname(ord("å")) eq "LATIN SMALL LETTER A WITH RING ABOVE";
@@ -28,7 +28,7 @@ print "not " unless uname(0xF000) eq "<private>";
 print "ok 6\n";
 print "not " unless uname(0) eq "<control>";
 print "ok 7\n";
-#print "not " unless uname(0xD800) eq "<surrugate>";
+print "not " unless uname(0xD800) eq "<surrogate>";
 print "ok 8\n";
 
 # Test ublock function

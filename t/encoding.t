@@ -221,6 +221,8 @@ $text = <<'EOT';
    5 January 1993
 EOT
 
+#$Unicode::String::UTF7_OPTIONAL_DIRECT_CHARS = 0;
+
 $u = utf7($text);
 $utf = $u->utf7;
 

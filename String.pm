@@ -245,9 +245,63 @@ sub utf8_inperl
 }
 
 
-sub utf7
+sub utf7   # rfc1642
 {
-    die "NYI";
+    my $self = shift;
+    unless (ref $self) {
+	# act as ctor
+	my $u = new Unicode::String;
+	$u->utf7($self);
+	return $u;
+    }
+    my $old;
+    if (defined wantarray) {
+	# encode into $old
+	$old = "";
+	local($_) = $$self;
+	while (length $_) {
+	    if (s/^((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//) {
+		#print "Plain ", utf16($1)->latin1, "\n";
+		$old .= utf16($1)->latin1;
+	    } else {
+		s/^(..)//s;  # XXX should match as much as possible
+		#print "Unplain ", utf16($1)->hex, "\n";
+		require MIME::Base64;
+		my $base64 = MIME::Base64::encode($1, '');
+		$base64 =~ s/=+$//;
+		$old .= "+$base64-";
+	    }
+	}
+    }
+    
+    if (@_) {
+	# decode
+	my $new = shift;
+	$$self = "";
+	while (length $new) {
+	    if ($new =~ s/^([^+]+)//) {
+		$self->append(latin1($1));
+	    } elsif ($new =~ s/^\+-//) {
+		$$self .= "\0+";
+	    } elsif ($new =~ s/^\+([A-Za-z0-9+\/]+)-?//) {
+		my $base64 = $1;
+		my $pad = length($base64) % 4;
+		$base64 .= "=" x (4 - $pad) if $pad;
+		#print "Base64: $base64\n";
+		require MIME::Base64;
+		my $data = MIME::Base64::decode($base64);
+		# XXX: might need to disgard last char of $data sometimes,
+		# depending on $pad
+		$$self .= $data;
+            } elsif ($new =~ s/^\+//) {
+		warn "Bad UTF7 data escape";
+		$$self .= "\0+";
+	    } else {
+		die "This should not happen '$new'";
+	    }
+	}
+    }
+    $old;
 }
 
 

@@ -11,6 +11,7 @@ extern "C" {
 #endif
 
 
+
 MODULE = Unicode::String	PACKAGE = Unicode::String
 
 SV*
@@ -326,4 +327,3 @@ utf8(self,...)
 
 	OUTPUT:
 	RETVAL
-

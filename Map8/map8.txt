@@ -1,0 +1,58 @@
+
+
+package Unicode::Map8;
+
+$map = new Unicode::Map( [0..255] );       # default is warn if dowarn
+$map = new Unicode::Map( [0..255], "" );   # replacement char (empty=ignore)
+$map = new Unicode::Map( [0..255], "?" );  # replacement char
+$map = new Unicode::Map( [0..127], "DIE"); # fatal error ????
+$map = new Unicode::Map( [0..127], sub{}); # replacement callback
+
+The array must be 256 or 128 bytes long.  If it is 128 bytes long,
+then the first 128 are assumed to be 1:1.  A value between 0 and
+0x10FFFF (better restrict to UCS2 range or one would need more than a
+2-level lookup to implement reverse lookup).
+
+The nomap callback look promising (it is not called very often so it
+should be ok to have it as a perl callback).  The returned value from
+the callback is inserted in the string.  A empty sting means ignore.
+The callback can also generate the warning and such things.
+
+What happens if two 8bit chars map to the same Unicode char?  Do we
+just assume that this will not happen?  I think we should just ignore
+this problem for now.
+
+It might be possible to specify the UCS2-->8bit mapping explicitly (if
+you don't want it to be the reverse of 8bit->UCS2, for instance
+because the mapping is ambigious.)
+
+How about 8bit chars that map to more than one Unicode char?  For
+instance if you want to set up "å --> U(a°)"
+
+Another problem is if one should try different levels of
+composing/decomposing in order to match the 8bit encoding?  This might
+make U(a°) map to "å" instead of "a" + nomap.
+
+
+package Unicode::String;
+
+$self->map8($map);       # returns a 8bit value (UCS4 --> 8bit)
+$self->map8($map, $new); # sets 8bit value (and return old value)
+map8($map,$new);         # constructor
+
+
+# And then we can create a more convenient mapping routine with a
+# closure like this:
+
+{
+   my $latin1_map = new Unicode::Map( [0..255] );
+
+   *latin1 = sub {
+	if (UNIVERSAL::isa($self, "Unicode::String")) {
+	   my $self = shift;
+	   return $self->map8($latin1_map, @_);
+        } else {
+	   return map8($latin1_map, @_);
+	}
+   }
+}

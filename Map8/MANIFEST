@@ -1,7 +1,6 @@
 MANIFEST
 MANIFEST.bak
 Makefile.PL
-Map8.c
 Map8.pm
 Map8.xs
 make_rfc1345_maps

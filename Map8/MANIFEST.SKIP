@@ -1,0 +1,15 @@
+^blib/
+\.old$
+Makefile$
+^MANIFEST.SKIP$
+^#
+/#
+~$
+\b(RCS|CVS)/[^/]+$
+\.cvsignore$
+pm_to_blib$
+\.o$
+\.bs$
+^recode-3\.4/
+^Map8.c$
+

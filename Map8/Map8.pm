@@ -104,9 +104,11 @@ Unicode::Map8 - Mapping table between 8-bit chars and Unicode
  my $no_map = Unicode::Map8->new("ISO646-NO") || die;
  my $l1_map = Unicode::Map8->new("latin1")    || die;
 
- my $ustr = $no_map->to16("V}re norske tegn b|r {res");
+ my $ustr = $no_map->to16("V}re norske tegn b|r {res\n");
  my $lstr = $l1_map->to8($ustr);
- print "$lstr\n";
+ print $lstr;
+
+ print $no_map->tou("V}re norske tegn b|r {res\n")->utf8
 
 =head1 DESCRIPTION
 
@@ -150,21 +152,21 @@ to 0x20.
 
 =item $m->default_to8( $u8 )
 
-Set the code of default character to use when mapping from 16-bit to
+Set the code of the default character to use when mapping from 16-bit to
 8-bit strings.  If there is no mapping pair defined for a character
 then this default is used by to8() and recode8().
 
 =item $m->default_to16( $u16 )
 
-Set the code of default character to use when mapping from 8-bit to
+Set the code of the default character to use when mapping from 8-bit to
 16-bit strings. If there is no mapping pair defined for a character
 then this default is used by to16(), tou() and recode8().
 
 =item $m->nostrict;
 
 All undefined mappings are replaced with the identity mapping.
-Undefined character are normally just zapped when converting between
-character sets.
+Undefined character are normally just zapped (or replaced with the
+default if defined) when converting between character sets.
 
 =item $m->to8( $ustr );
 
@@ -184,9 +186,9 @@ UCS2 string.
 =item $m->recode8($m2, $str);
 
 Map the string $str from one 8-bit character set ($m) to another one
-($m2).  Since we know the mappings towards the common 16-bit encoding
-we can use this to convert between any of the 8-bit character sets we
-know about.
+($m2).  Since we assume we know the mappings towards the common 16-bit
+encoding we can use this to convert between any of the 8-bit character
+sets.
 
 =item $m->to_char16( $u8 )
 

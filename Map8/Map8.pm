@@ -11,7 +11,7 @@ use vars qw($VERSION @ISA $DEBUG $MAPS_DIR %ALIASES);
 require DynaLoader;
 @ISA=qw(DynaLoader);
 
-$VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
+$VERSION = '0.01';  # $Id$
 #$DEBUG++;
 
 bootstrap Unicode::Map8 $VERSION;
@@ -22,7 +22,8 @@ $MAPS_DIR;  # where to locate map files
 # Try to locate the maps directory, and read the aliases file
 for (split(':', $ENV{MAPS_PATH}),
      (map "$_/Unicode/Map8/maps", @INC),
-     "./maps", ".")
+     "."
+    )
 {
     if (open(ALIASES, "$_/aliases")) {
 	$MAPS_DIR = $_;

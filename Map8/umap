@@ -13,11 +13,56 @@ umap - map between different character sets
 The I<umap> script acts as a filter between different encodings and
 character sets.
 
+The following options are recognized:
+
+=over 4
+
+=item --list [charset]
+
+Without argument list all character sets recognized.  With a specified
+character set list the mapping between this set and Unicode.
+
+=item --strict
+
+Do the stict mapping between the character sets.  The default is to
+not translate unmapped character.  With I<--stict> we will remove
+unmapped characters or use the default specified with I<--def8> or
+I<--def16>.
+
+=item --def8=<charcode>
+
+Set the default 8-bit code for unmapped chars.
+
+=item --def16=<charcode>
+
+Set the default 16-bit code for unmapped chars.
+
+=item --verbose
+
+Generate more verbose output.
+
+=item --version
+
+Print the version number of this program and quit.
+
+=item --help
+
+Print the usage message.
+
+=back
+
 =head1 SEE ALSO
 
 L<Unicode::String>,
 L<Unicode::Map8>,
 recode(1)
+
+=head1 COPYRIGHT
+
+Copyright 1998 Gisle Aas.
+
+This is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
 
 =cut
 
@@ -242,5 +287,12 @@ EOT
 sub usage
 {
     (my $progname = $0) =~ s,.*/,,;
-    die "Usage: $progname [options]\n";
+    die "Usage:\t$progname [options] <before>:<after>
+The options are:
+  --list [charset]    list character sets
+  --strict            use the strict mapping
+  --def8 <code>       default 8-bit code for unmapped chars
+  --def16 <code>      default 16-bit code for unmapped chars
+  --version           print version number and quit
+";
 }

@@ -5,14 +5,12 @@ More information on Unicode can be found at http://www.unicode.org
 
 Current modules are:
 
-  Unicode::String   - represent strings of Unicode chars.
+  Unicode::String   - represent strings of Unicode chars
   Unicode::CharName - look up character names
+  Unicode::Map8     - mapping tables towards 8-bit char sets
 
 
 Some of ideas to investigate for the Unicode modules are:
-
-   o Fast encoding/decoding to various 8-bit char sets.  Mapping
-     table objects perhaps?
 
    o Fast convertion to other large char sets (east-asien).  I don't
      know anything about this.

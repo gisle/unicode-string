@@ -15,7 +15,7 @@ require Exporter;
 *import = \&Exporter::import;
 @EXPORT_OK = qw(NOCHAR MAP8_BINFILE_MAGIC_HI MAP8_BINFILE_MAGIC_LO);
 
-$VERSION = '0.02';  # $Id$
+$VERSION = '0.03';  # $Id$
 #$DEBUG++;
 
 bootstrap Unicode::Map8 $VERSION;
@@ -71,16 +71,6 @@ sub new
     }
     print "CREATED $self\n" if $DEBUG && $self;
     $self;
-}
-
-sub DESTROY
-{
-    my $self = shift;
-    if ($DEBUG) {
-	print "DESTROY $self\n";
-	$self->fprint(\*STDOUT) if $self->can('fprint');
-    }
-    $self->_free;
 }
 
 sub tou

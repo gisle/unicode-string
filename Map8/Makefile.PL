@@ -6,5 +6,6 @@ WriteMakefile(
     'LIBS'	   => [''],
     'DEFINE'	   => '-DPERL',
     'INC'	   => '',
-    'OBJECT'    => q[Map8$(OBJ_EXT) map8$(OBJ_EXT)],
+    'OBJECT'       => q[Map8$(OBJ_EXT) map8$(OBJ_EXT)],
+    dist           => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
 );

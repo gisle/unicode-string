@@ -2,10 +2,9 @@ Changes
 MANIFEST
 Makefile.PL
 README
-String/Makefile.PL
-String/String.pm
-String/String.xs
-Unicode/CharName.pm
+String.pm
+String.xs
+lib/Unicode/CharName.pm
 t/charname.t
 t/encoding.t
 t/ord.t

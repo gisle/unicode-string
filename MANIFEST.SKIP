@@ -1,5 +1,6 @@
 ^blib/
 \.old$
+\.bak$
 Makefile$
 ^MANIFEST.SKIP$
 ^#

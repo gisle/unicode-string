@@ -1,4 +1,4 @@
-print "1..17\n";
+print "1..18\n";
 
 use strict;
 use Unicode::Map8 qw(NOCHAR);
@@ -115,6 +115,9 @@ if ($m) {
 	print "not ok $test\n";
     }
 }
+
+print "not " if Unicode::Map8->new("NOT_FOUND");
+print "ok 18\n";
 
 
 #---------------------------------------------------

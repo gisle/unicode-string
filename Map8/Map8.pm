@@ -65,6 +65,7 @@ sub new
 		    Unicode::Map8::_new_txtfile("$file.txt") ||
 		    Unicode::Map8::_new_binfile("$file")     ||
 		    Unicode::Map8::_new_txtfile("$file");
+	    $self->{'charset'} = $charset if $self;
 	}
     } else {
 	$self = Unicode::Map8::_new();

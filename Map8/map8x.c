@@ -145,7 +145,7 @@ map8_new_binfile(const char *file)
   FILE* f;
   struct map8_filerec pair[256];
 
-  f = fopen(file, "r");
+  f = fopen(file, "rb");
   if (!f)
     return 0;
 

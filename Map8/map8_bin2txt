@@ -7,7 +7,7 @@ if (@ARGV) {
     $file = shift;
     open(STDIN, $file) || die "Can't open $file: $!\n";
 }
-
+binmode(STDIN);
 die "Can't read: $!" unless read(STDIN, $magic, 4) == 4;
 my($hi,$lo) = unpack("nn", $magic);
 die "Bad magic\n" unless $hi == 0xFFFE && $lo == 0x0001;

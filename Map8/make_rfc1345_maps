@@ -113,7 +113,8 @@ sub map_out
 	$aliases{$charset}{$_}++;
     }
 
-    open(BINMAP, "| ./map8_txt2bin >maps/$charset.bin") or die;
+    open(BINMAP, "| perl ./map8_txt2bin >maps/$charset.bin") or die;
+    binmode BINMAP;
     for (@map) {
 	my($code, $mne) = @$_;
 	my $x4 = $mnemonics{$mne};
@@ -130,4 +131,3 @@ sub map_out
     close(BINMAP);
     
 }
-

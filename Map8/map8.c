@@ -3,6 +3,9 @@
 #include <memory.h>
 #include <stdlib.h>
 
+static U16* nochar_map = 0;
+static int  num_maps = 0;
+
 
 
 Map8*
@@ -13,13 +16,22 @@ map8_new()
   m = (Map8*)malloc(sizeof(Map8));
   if (!m) abort();
 
+  if (!nochar_map) {
+    /* initialize the shared array for second level u16 mapping */
+    nochar_map = (U16*)malloc(sizeof(U16)*256);
+    if (!nochar_map) abort();
+    for (i = 0; i < 256; i++)
+      nochar_map[i] = NOCHAR;
+  }
+
   for (i = 0; i < 256; i++) {
     m->to_16[i]  = NOCHAR;
-    m->to_8[i]  = m->nomap;
-    m->nomap[i] = NOCHAR;
+    m->to_8[i]  = nochar_map;
   }
   m->nomap8 = 0;
   m->nomap16 = 0;
+
+  num_maps++;
   return m;
 }
 
@@ -31,7 +43,7 @@ map8_addpair(Map8* m, U8 u8, U16 u16)
   U8 hi = u16 >> 8;
   U8 lo = u16 & 0xFF;
   U16* himap = m->to_8[hi];
-  if (himap == m->nomap) {
+  if (himap == nochar_map) {
     int i;
     U16* map = (U16*)malloc(sizeof(U16)*256);
     if (!map) abort();
@@ -117,10 +129,14 @@ map8_free(Map8* m)
   int i;
   if (!m) return;
   for (i = 0; i < 256; i++) {
-    if (m->to_8[i] != m->nomap)
+    if (m->to_8[i] != nochar_map)
       free(m->to_8[i]);
   }
   free(m);
+  if (--num_maps == 0) {
+    free(nochar_map);
+    nochar_map = 0;
+  }
 }
 
 
@@ -204,8 +220,8 @@ map8_fprint(FILE* f, Map8* m)
 {
   int i, j;
   long size = 0;
-  int identity = 0;
-  int nomap    = 0;
+  int num_ident = 0;
+  int num_nomap = 0;
 
   if (!m) {
     fprintf(f, "NULL mapping\n");
@@ -218,46 +234,46 @@ map8_fprint(FILE* f, Map8* m)
   for (i = 0; i < 256; i++) {
     U16 u = m->to_16[i];
     if (i == u) {
-      identity++;
+      num_ident++;
     } else if (u == NOCHAR) {
-      nomap++;
+      num_nomap++;
     } else {
       fprintf(f, "   %02x U+%04x  (%d --> %d)\n", i, u, i, u);
     }
   }
-  if (identity)
-    fprintf(f, "   +%d identity mappings\n", identity);
-  if (nomap) {
-    fprintf(f, "   +%d nochar mappings", nomap);
+  if (num_ident)
+    fprintf(f, "   +%d identity mappings\n", num_ident);
+  if (num_nomap) {
+    fprintf(f, "   +%d nochar mappings", num_nomap);
     if (m->nomap8)
       fprintf(f, " (mapping func %p)", m->nomap8);
     fprintf(f, "\n");
   }
 
   for (i = 0; i < 256; i++) {
-    identity = 0;
-    nomap    = 0;
+    num_ident = 0;
+    num_nomap = 0;
     if (m->to_8[i] == 0) {
       fprintf(f, " U16-U8: block %d NULL (should not happen)\n", i);
-    } else if (m->to_8[i] != m->nomap) {
+    } else if (m->to_8[i] != nochar_map) {
       size += sizeof(U16)*256;
       fprintf(f, " U16-U8:  block %d  %p\n", i, m->to_8[i]);
       for (j = 0; j < 256; j++) {
 	int from = i*256+j;
 	int to = m->to_8[i][j];
 	if (from == to) {
-	  identity++;
+	  num_ident++;
 	} else if (to == NOCHAR) {
-	  nomap++;
+	  num_nomap++;
 	  /* fprintf(f, "   NOMAP %d\n", from); */
 	} else {
 	  fprintf(f, "   U+%04x %02x  (%d --> %d)\n", from, to, from, to);
 	}
       }
-      if (identity)
-	fprintf(f, "   +%d identity mappings\n", identity);
-      if (nomap)
-	fprintf(f, "   +%d nochar mappings\n", nomap);
+      if (num_ident)
+	fprintf(f, "   +%d identity mappings\n", num_ident);
+      if (num_nomap)
+	fprintf(f, "   +%d nochar mappings\n", num_nomap);
     }
   }
   if (m->nomap16)

@@ -1,3 +1,11 @@
+2003-03-10   Gisle Aas <gisle@ActiveState.com>
+
+   Release 2.07
+   
+   Don't let the $^W test get confused by lexical warnings.
+
+
+
 2000-05-19   Gisle Aas <gisle@ActiveState.com>
 
    Release 2.06

@@ -12,7 +12,7 @@ require DynaLoader;
 
 @EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr uhex byteswap2 byteswap4);
 
-$VERSION = '2.06'; # $Id$
+$VERSION = '2.07'; # $Id$
 
 $UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 

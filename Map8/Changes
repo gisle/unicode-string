@@ -10,6 +10,9 @@
 
    Added maps/cp866lr.  Contributed by Alexander Smishlajev.
 
+   PerlIO support.  Based on patch from Honza Pazdziora
+   <adelton@fi.muni.cz>
+
 
 
 1998-07-14   Gisle Aas <aas@sn.no>

@@ -52,8 +52,8 @@ struct map8_filerec
 #define map8_to_char16(m,c)    (m)->to_16[c]
 #define map8_to_char8(m,c)     (m)->to_8[(c)>>8][(c)&0xFF]
 
-#define map8_set_def_to8(m,c)  (m)->def_to8 = htons(c)
-#define map8_get_def_to8(m)    ntohs((m)->def_to8)
+#define map8_set_def_to8(m,c)  (m)->def_to8 = c
+#define map8_get_def_to8(m)    (m)->def_to8
 #define map8_set_def_to16(m,c) (m)->def_to16 = htons(c)
 #define map8_get_def_to16(m)   ntohs((m)->def_to16)
 

@@ -16,6 +16,19 @@ $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
 
 bootstrap Unicode::String $VERSION;
 
+use overload ( '""' => 'as_string', 'fallback' => 1 );
+
+my %stringify = (
+   unicode => \&utf16,
+   utf16   => \&utf16,
+   utf8    => \&utf8,
+   utf7    => \&utf7,
+   ucs4    => \&ucs4,
+   latin1  => \&latin1,
+   'hex'   => \&hex,
+);
+
+my $stringify_as = \&utf8;
 
 sub new
 {
@@ -23,6 +36,27 @@ sub new
     croak "Odd length of Unicode string"
 	if defined($str) && length($str)%2 != 0;
     bless \$str, $class;
+}
+
+sub as_string
+{
+    &$stringify_as($_[0]);
+}
+
+
+sub stringify_as
+{
+    my $class;
+    if (@_ > 1) {
+	$class = shift;
+	$class = ref($class) if ref($class);
+    } else {
+	$class = "Unicode::String";
+    }
+    my $as = shift;
+    croak("Don't know how to stringify as '$as'")
+        unless exists $stringify{$as};
+    $stringify_as = $stringify{$as};
 }
 
 
@@ -134,6 +168,7 @@ sub hex
     return undef unless defined($$self);
     my $str = unpack("H*", $$self);
     $str =~ s/(....)/U+$1 /g;
+    $str =~ s/\s+$//;
     $str;
 }
 
@@ -155,7 +190,7 @@ sub unpack
 sub pack
 {
     my $self = shift;
-    pack("n*", $$self, @_);
+    $$self = pack("n*", @_);
     $self;
 }
 

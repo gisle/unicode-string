@@ -13,6 +13,9 @@ time I did.  His module is called Unicode::Map and should be available
 on CPAN too.  We will try to coordinate our efforts at some time.
 This means that the interface to this class might change.
 
+Since UTF8 support is comming to Perl soon, there might be good
+reasons to move this module in the direction of mapping to/from UTF8.
+
 
 EXAMPLE OF USE
 

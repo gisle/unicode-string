@@ -1,3 +1,4 @@
+Changes
 MANIFEST
 Makefile.PL
 Map8.pm
@@ -184,7 +185,9 @@ make_unicd_maps
 map8.c
 map8.h
 map8_bin2txt
+map8_printmap
 map8_txt2bin
 rfc1345.txt
 t/map8.t
+t/unistr.t
 typemap

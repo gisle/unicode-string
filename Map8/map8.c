@@ -301,6 +301,9 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
 	  continue;  /* no mapping exists for this char */
 	}
 	uc = htons(uc);
+      } else {
+	from++;
+	continue;
       }
     }
     from++;
@@ -314,8 +317,10 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
 	u8 = (m2->cb_to8)(ntohs(uc));
 	if (u8 == NOCHAR || u8 > 0xFF)
 	  continue;  /* no mapping exists for this char */
-      }
+      } else
+	continue;
     }
+
     *tmp++ = (U8)u8;
   }
 

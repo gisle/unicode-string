@@ -10,13 +10,18 @@ require Exporter;
 require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 
-@EXPORT_OK = qw(utf8 latin1 uchr);
+@EXPORT_OK = qw(utf16 utf8 utf7 latin1 uchr);
 
 $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
 
 bootstrap Unicode::String $VERSION;
 
-use overload ( '""' => 'as_string', 'fallback' => 1 );
+use overload ( '""' => \&as_string,
+	       '.=' => \&append,
+               '.'  => \&concat,
+               'x'  => \&repeat,
+	       '='  => \&copy,
+               'fallback' => 1 );
 
 my %stringify = (
    unicode => \&utf16,
@@ -32,11 +37,48 @@ my $stringify_as = \&utf8;
 
 sub new
 {
-    my($class,$str) = @_;
-    croak "Odd length of Unicode string"
-	if defined($str) && length($str)%2 != 0;
-    bless \$str, $class;
+    my $class = shift;
+    my $str;
+    my $self = bless \$str, $class;
+    &$stringify_as($self, shift) if @_;
+    $self;
 }
+
+sub repeat
+{
+    my($self, $count) = @_;
+    my $class = ref($self);
+    $class->new($$self x $count);
+}
+
+sub concat
+{
+    my($self, $other) = @_;
+    my $class = ref($self);
+    unless (UNIVERSAL::isa($other, 'Unicode::String')) {
+	$other = Unicode::String->new($other);
+    }
+    $class->new($$self . $$other);
+}
+
+sub append
+{
+    my($self, $other) = @_;
+    unless (UNIVERSAL::isa($other, 'Unicode::String')) {
+	$other = Unicode::String->new($other);
+    }
+    $$self .= $$other;
+    $self;
+}
+
+sub copy
+{
+    my($self) = @_;
+    my $class = ref($self);
+    my $copy = $$self;
+    bless \$copy, $class;
+}
+
 
 sub as_string
 {
@@ -63,7 +105,16 @@ sub stringify_as
 sub utf16
 {
     my $self = shift;
-    $$self;
+    unless (ref $self) {
+	my $u = new Unicode::String;
+	$u->utf16($self);
+	return $u;
+    }
+    my $old = $$self;;
+    if (@_) {
+	$$self = shift;
+    }
+    $old;
 }
 
 *ucs2 = \&utf16;
@@ -72,7 +123,19 @@ sub utf16
 sub ucs4
 {
     my $self = shift;
-    pack("N*", $self->ord);
+    unless (ref $self) {
+	my $u = new Unicode::String;
+	$u->ucs4($self);
+	return $u;
+    }
+    my $old = pack("N*", $self->ord);
+    if (@_) {
+	$$self = "";
+	for (unpack("N*", shift)) {
+	    $self->append(uchr($_));
+	}
+    }
+    $old;
 }
 
 
@@ -165,11 +228,23 @@ sub latin1_old   # implemented as XS now
 sub hex
 {
     my $self = shift;
-    return undef unless defined($$self);
-    my $str = unpack("H*", $$self);
-    $str =~ s/(....)/U+$1 /g;
-    $str =~ s/\s+$//;
-    $str;
+    unless (ref $self) {
+	my $u = new Unicode::String;
+	$u->hex($self);
+	return $u;
+    }
+    my $old;
+    if (defined $$self) {
+	$old = unpack("H*", $$self);
+	$old =~ s/(....)/U+$1 /g;
+	$old =~ s/\s+$//;
+    }
+    if (@_) {
+	my $new = shift;
+	$new =~ tr/0-9A-Fa-f//cd;  # leave only hex chars
+	$$self = pack("H*", $new);
+    }
+    $old;
 }
 
 

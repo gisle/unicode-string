@@ -32,7 +32,7 @@ for $enc ("stdenc", "symbol", "zdingbat") {
 	while (<F>) {
 	    if (/^\#\s*Name:\s*(.*)/) {
 		$name = $1;
-	    } elsif (/^([0-9A-F]{4})\s+([0-9A-F]{2})/) {
+	    } elsif (/^([0-9A-Fa-f]{4})\s+([0-9A-Fa-f]{2})/) {
 		push(@map, [$2, $1]);
 	    }
 	}
@@ -83,7 +83,7 @@ for $enc (@enc) {
 	    $name =~ s/ to Unicode table$//;
 	    $name =~ s/\s*\(.*\)\s*//;
 	    $cp = $1 if $name =~ s/(^cp\d+)_//;
-	} elsif (/^0x([0-9A-F]+)\s+0x([0-9A-F]+)/ && $name) {
+	} elsif (/^0x([0-9A-Fa-f]+)\s+0x([0-9A-Fa-f]+)/ && $name) {
 	    my $u8 = hex($1);
 	    if ($u8 > 0xFF) {
 	        printf STDERR "Skipping $fname ($name), not 8-bit charset\n";

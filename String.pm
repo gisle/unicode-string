@@ -322,9 +322,9 @@ sub ord
     my @ret;
     my @chars;
     if ($array) {
-        @chars = unpack("n*", $$self);
+        @chars = CORE::unpack("n*", $$self);
     } else {
-	@chars = unpack("n2", $$self);
+	@chars = CORE::unpack("n2", $$self);
     }
 
     while (@chars) {
@@ -374,9 +374,9 @@ sub chr
 	$val -= 0x10000;
 	my $h = int($val / 0x400) + 0xD800;
 	my $l = ($val % 0x400) + 0xDC00;
-	$$self = pack("n2", $h, $l);
+	$$self = CORE::pack("n2", $h, $l);
     } else {
-	$$self = pack("n", $val);
+	$$self = CORE::pack("n", $val);
     }
     $self;
 }
@@ -431,7 +431,7 @@ sub rindex
 sub chop
 {
     my $self = shift;
-    if (length $$self) {
+    if (CORE::length $$self) {
 	my $chop = chop($$self);
 	$chop = chop($$self) . $chop;
 	return bless \$chop, ref($self);

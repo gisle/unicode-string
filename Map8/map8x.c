@@ -292,6 +292,7 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
   U8* tmp;
   U16 uc;
   U16 u8;  /* need U16 to represent NOCHAR */
+  int didwarn = 0;
 
   if (from == 0)
     return 0;
@@ -325,8 +326,8 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
 	goto got_16;
       }
       
-      if (len > 1)
-	fprintf(stderr, "one-to-many mapping not implemented yet\n");
+      if (len > 1 && !didwarn++)
+	PerlIO_printf(stderr, "one-to-many mapping not implemented yet\n");
     }
 
     /* Never managed to find a mapping to Unicode, skip it */

@@ -541,3 +541,79 @@ sub tr;
 
 
 1;
+
+__END__
+
+=head1 NAME
+
+Unicode::String - String of Unicode characters (UCS2/UTF16)
+
+=head1 SYNOPSIS
+
+ use Unicode::String qw(utf8 latin1 utf16);
+ $u = utf8("The Unicode Standard is a fixed-width, uniform ");
+ $u .= utf8("encoding scheme for written characters and text");
+
+ # convert to various external formats
+ print $u->ucs4;      # 4 byte characters
+ print $u->utf16;     # 2 byte characters + surrogates
+ print $u->utf8;      # 1-4 byte characters
+ print $u->utf7;      # 7-bit clean format
+ print $u->latin1;    # lossy
+ print $u->hex;       # a hexadecimal string
+
+ # all these can be used to set string value or as constructor
+ $u->latin1("Å være eller å ikke være");
+ $u = utf16("\0Å\0 \0v\0æ\0r\0e");
+
+ # string operations
+ $u2 = $u->copy;
+ $u->append($u2);
+ $u->repeat(2);
+ $u->chop;
+
+ $u->length;
+ $u->index($other);
+ $u->index($other, $pos);
+
+ $u->substr($offset);
+ $u->substr($offset, $length);
+ $u->substr($offset, $length, $substitute);
+
+ # overloading
+ $u .= "more";
+ $u = $u x 100;
+ print "$u\n";
+
+ # string <--> array of numbers
+ @array = $u->unpack;
+ $u->pack(@array);
+
+ # misc
+ $u->ord;
+ $u = uchr($num);
+
+=head1 DESCRIPTION
+
+A I<Unicode::String> object represents a sequence of Unicode
+characters.  The Unicode Standard is a fixed-width, uniform encoding
+scheme for written charaters and text.  This encoding treats
+alphabetic characters, ideographic characters, and symbols
+identically, which means that they can be used in any mixture and with
+equal facility.  Unicode is modeled on the ASCII character set, but
+uses a 16-bit encoding to support full multilingual text.
+
+Internally a I<Unicode::String> object is a string of 2 byte values in
+network byte order (big-endian).  The class provide various methods to
+convert from and to various external formats (ucs4 / utf16 / utf8 /
+utf7 / latin1 / hex).  All string manipulations are made on strings in
+this the internal 16-bit format.
+
+=head1 COPYRIGHT
+
+Copyright 1997 Gisle Aas.
+
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+=cut

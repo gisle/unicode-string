@@ -16,21 +16,24 @@ $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
 
 bootstrap Unicode::String $VERSION;
 
-use overload ( '""' => \&as_string,
-	       '.=' => \&append,
-               '.'  => \&concat,
-               'x'  => \&repeat,
-	       '='  => \&copy,
-               'fallback' => 1 );
+use overload '""'   => \&as_string,
+	     'bool' => \&as_bool,
+	     '0+'   => \&as_num,
+	     '.='   => \&append,
+             '.'    => \&concat,
+             'x'    => \&repeat,
+	     '='    => \&copy,
+             'fallback' => 1;
 
 my %stringify = (
    unicode => \&utf16,
    utf16   => \&utf16,
+   ucs2    => \&utf16,
    utf8    => \&utf8,
    utf7    => \&utf7,
    ucs4    => \&ucs4,
    latin1  => \&latin1,
-   'hex'   => \&hex,
+  'hex'    => \&hex,
 );
 
 my $stringify_as = \&utf8;
@@ -109,6 +112,25 @@ sub as_string
     &$stringify_as($_[0]);
 }
 
+sub as_bool
+{
+    # This is different from perl's normal behaviour by not letting
+    # a U+0030  ("0") be false.
+    my $self = shift;
+    $$self ? 1 : "";
+}
+
+sub as_num
+{
+    # Should be able to use the numeric property from Unidata
+    # in order to parse a large number of numbers.  Currently we
+    # only convert it to a plain string and let perl's normal
+    # num-converter do the job.
+    my $self = shift;
+    my $str = $self->utf8;
+    $str + 0;
+}
+
 
 sub stringify_as
 {
@@ -144,7 +166,7 @@ sub utf16
 *ucs2 = \&utf16;
 
 
-sub ucs4
+sub ucs4_inperl
 {
     my $self = shift;
     unless (ref $self) {
@@ -163,7 +185,7 @@ sub ucs4
 }
 
 
-sub utf8
+sub utf8_inperl
 {
     my $self = shift;
     unless (ref $self) {
@@ -223,7 +245,13 @@ sub utf8
 }
 
 
-sub latin1_old   # implemented as XS now
+sub utf7
+{
+    die "NYI";
+}
+
+
+sub latin1_inperl
 {
     my $self = shift;
     unless (ref $self) {
@@ -354,10 +382,35 @@ sub uchr
 sub substr
 {
     my($self, $offset, $length) = @_;
+    $offset ||= 0;
     $offset *= 2;
-    $length *= 2;
-    my $substr = substr($$self, $offset, $length);
+    my $substr;
+    if (defined $length) {
+	$substr = substr($$self, $offset, $length*2);
+    } else {
+	$substr = substr($$self, $offset);
+    }
     bless \$substr, ref($self);
+}
+
+
+sub index
+{
+    my($self, $other, $pos) = @_;
+    $pos ||= 0;
+    $pos *= 2;
+    $other = Unicode::String->new($other) unless ref($other);
+    $pos++ while ($pos = index($$self, $$other, $pos)) > 0 && ($pos%2) != 0;
+    $pos /= 2 if $pos > 0;
+    $pos;
+}
+
+
+sub rindex
+{
+    my($self, $other, $pos) = @_;
+    $pos ||= 0;
+    die "NYI";
 }
 
 1;

@@ -102,6 +102,10 @@ sub map_out
     }
     if ($charset =~ /^ISO_8859-(\d+)$/) {
 	push(@aliases, "iso8859-$1", "8859-$1");
+	# Fix the MACRON vs. OVERLINE bug in these encodings
+	if ($1 == 1 || $1 == 4 || $1 == 9) {
+	    splice(@map, 0xAF, 0, [0xAF, "'m"]);
+	}
     }
 
     print STDERR "$charset @aliases\n";

@@ -20,7 +20,7 @@ print "ok 3\n";
 print "not " unless uname(0x1111) eq "HANGUL CHOSEONG PHIEUPH";
 print "ok 4\n";
 
-print "not " unless uname(0xD4DB) eq "HANGUL SYLLABLE P WI LH";
+print "not " unless uname(0xD4DB) eq "HANGUL SYLLABLE PWILH";
 print "ok 5\n";
 
 # Some various stuff

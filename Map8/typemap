@@ -8,7 +8,7 @@ OUTPUT
 T_MAP8
         /* Make a HASH object, and attach the map to it */
 	sv_upgrade($arg, SVt_RV);
-	SvRV($arg) = newHV();
+	SvRV($arg) = (SV*)newHV();
 	SvROK_on($arg);
         {
 	    HV* stash = gv_stashpv(\"Unicode::Map8\", TRUE);

@@ -335,3 +335,68 @@ utf8(self,...)
 
 	OUTPUT:
 	RETVAL
+
+void
+byteswap(...)
+	ALIAS:
+	   Unicode::String::byteswap2 = 2
+	   Unicode::String::byteswap4 = 4
+
+        PREINIT:
+        int i; 
+        char c;
+        STRLEN len; 
+        char* str; 
+
+        PPCODE:
+	for (i = 0; i < items; i++) {
+	    SV* sv = ST(i);
+	    STRLEN len;
+            char* src = SvPV(sv, len);
+            char* dest;
+
+	    if (GIMME_V != G_VOID) {
+		SV* dest_sv = sv_2mortal(newSV(len+1));
+		SvCUR_set(dest_sv, len);
+		*SvEND(dest_sv) = 0;
+		SvPOK_on(dest_sv);
+		PUSHs(dest_sv);
+		dest = SvPVX(dest_sv);
+            } else {
+		if (SvREADONLY(sv)) {
+		    die("byteswap argument #%d is readonly", i+1);
+		    continue;  /* probably not */
+		}
+		dest = src;
+            }
+
+	    if (ix == 2) {	
+	        while (len >= 2) {
+		    char tmp = *src++;
+		    *dest++ = *src++;
+		    *dest++ = tmp;
+		    len -= 2;
+                }
+            }
+	    else { /* ix == 4 */
+		while (len >= 4) {
+		    char tmp1 = *src++;
+		    char tmp2 = *src++;
+		    *dest++ = src[1];
+		    *dest++ = src[0];
+		    src += 2;
+		    *dest++ = tmp2;
+		    *dest++ = tmp1;
+		    len -= 4;
+                }
+            }
+
+	    if (len) {
+		if (dowarn) 
+		    warn("byteswap argument #%d not long enough", i+1);
+
+		/* this will be a no-op unless dest/src are different */
+		while (len--)
+		   *dest++ = *src++;
+            }
+	}

@@ -15,7 +15,7 @@ require Exporter;
 *import = \&Exporter::import;
 @EXPORT_OK = qw(NOCHAR MAP8_BINFILE_MAGIC_HI MAP8_BINFILE_MAGIC_LO);
 
-$VERSION = '0.01';  # $Id$
+$VERSION = '0.02';  # $Id$
 #$DEBUG++;
 
 bootstrap Unicode::Map8 $VERSION;
@@ -195,12 +195,6 @@ Maps an 8-bit character code to an 16-bit code.
 =item $m->to_char8( $u16 )
 
 Maps a 16-bit character code to an 8-bit code.
-
-=item $m->fprint( FILE );
-
-If the extension is compiled with the -DDEBUGGING option, then this
-method is available.  It prints a summary of the content of the
-mapping table on the specified file handle.
 
 =back
 

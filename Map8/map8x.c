@@ -200,6 +200,7 @@ map8_free(Map8* m)
 }
 
 
+#ifndef PERL
 
 U16* map8_to_str16(Map8* m, U8* str8, U16* str16, int len, int* rlen)
 {
@@ -282,6 +283,8 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
   }
   return str8;
 }
+
+#endif  /* !PERL */
 
 
 U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)

@@ -28,7 +28,9 @@ sub new
 	    $self = Unicode::Map8::_new_txtfile($file);
 	} else {
 	    $self = Unicode::Map8::_new_binfile($file) ||
-		    Unicode::Map8::_new_txtfile($file);
+		    Unicode::Map8::_new_txtfile($file) ||
+		    Unicode::Map8::_new_binfile("$file.bin") ||
+		    Unicode::Map8::_new_txtfile("$file.txt");
 	}
     } else {
 	$self = Unicode::Map8::_new();

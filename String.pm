@@ -37,6 +37,7 @@ my $stringify_as = \&utf8;
 
 sub new
 {
+    #_dump_arg("new", @_);
     my $class = shift;
     my $str;
     my $self = bless \$str, $class;
@@ -48,21 +49,43 @@ sub repeat
 {
     my($self, $count) = @_;
     my $class = ref($self);
-    $class->new($$self x $count);
+    my $str = $$self x $count;
+    bless \$str, $class;
 }
+
+
+sub _dump_arg
+{
+    my $func = shift;
+    print "$func(";
+    print join(",", map { if (defined $_) {
+                             my $x = overload::StrVal($_);
+			     $x =~ s/\n/\\n/g;
+			     $x = '""' unless length $x;
+			     $x;
+			 } else {
+			     "undef"
+			 }
+                        } @_);
+    print ")\n";
+}
+
 
 sub concat
 {
+    #_dump_arg("concat", @_);
     my($self, $other) = @_;
     my $class = ref($self);
     unless (UNIVERSAL::isa($other, 'Unicode::String')) {
 	$other = Unicode::String->new($other);
     }
-    $class->new($$self . $$other);
+    my $str = $$self . $$other;
+    bless \$str, $class;
 }
 
 sub append
 {
+    #_dump_arg("append", @_);
     my($self, $other) = @_;
     unless (UNIVERSAL::isa($other, 'Unicode::String')) {
 	$other = Unicode::String->new($other);
@@ -82,6 +105,7 @@ sub copy
 
 sub as_string
 {
+    #_dump_arg("as_string", @_);
     &$stringify_as($_[0]);
 }
 

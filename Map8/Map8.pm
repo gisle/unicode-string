@@ -15,7 +15,7 @@ require Exporter;
 *import = \&Exporter::import;
 @EXPORT_OK = qw(NOCHAR MAP8_BINFILE_MAGIC_HI MAP8_BINFILE_MAGIC_LO);
 
-$VERSION = '0.07';  # $Id$
+$VERSION = '0.08';  # $Id$
 #$DEBUG++;
 
 bootstrap Unicode::Map8 $VERSION;
@@ -54,6 +54,8 @@ sub new
     my $self;
     if (@_) {
 	my $file = shift;
+	$file = $file->{ID} if ref($file); # Unicode::Map compatibility
+
 	if ($file =~ /\.bin$/) {
 	    $self = Unicode::Map8::_new_binfile($file);
 	} elsif ($file =~ /\.txt$/) {
@@ -93,6 +95,11 @@ sub unmapped_to16
     my($self, $code) = @_;
     "";
 }
+
+# Some Unicode::Map compatibility stuff
+
+*from_unicode = \&to8;
+*to_unicode   = \&to16;
 
 1;
 

@@ -19,10 +19,50 @@ extern "C" {
 
 #include "map8.h"
 
+/* Some renaming that helps avoiding name class with the Perl versions
+ * of the constructors
+ */
 #define map8__new          map8_new
 #define map8__new_txtfile  map8_new_txtfile
 #define map8__new_binfile  map8_new_binfile
-#define map8__free         map8_free
+
+
+/* We use '~' magic to attach the Map8* objects to Unicode::Map8
+ * objects.  The pointer to the attached Map8* object is stored in
+ * the mg_obj fields of struct magic.  The attached Map8* object
+ * is also automatically freed when the magic is freed.
+ */
+static int
+map8_magic_free(SV* sv, MAGIC* mg)
+{
+    map8_free((Map8*)mg->mg_obj);
+    return 1;
+}
+
+static MGVTBL magic_cleanup = { 0, 0, 0, 0, map8_magic_free };
+
+static Map8*
+find_map8(SV* obj)
+{
+    MAGIC *m;
+    if (!sv_derived_from(obj, "Unicode::Map8"))
+	croak("Not an Unicode::Map8 object");
+    m = mg_find(SvRV(obj), '~');
+    if (!m) croak("No magic attached");
+    if (m->mg_len != 666) croak("Bad magic in ~-magic");
+    return (Map8*) m->mg_obj;
+}
+
+static void
+attach_map8(SV* obj, Map8* map8)
+{
+   MAGIC *m;
+   sv_magic(SvRV(obj), NULL, '~', 0, 666);
+   m = mg_find(SvRV(obj), '~');
+   if (!m) croak("Can't find back ~ magic");
+   m->mg_virtual = &magic_cleanup;
+   m->mg_obj = (SV*)map8;
+}
 
 
 
@@ -65,10 +105,6 @@ map8_default_to8(map,...)
 
 void
 map8_nostrict(map)
-	Map8* map
-
-void
-map8__free(map)
 	Map8* map
 
 #ifdef DEBUGGING

@@ -337,7 +337,7 @@ utf8(self,...)
 	RETVAL
 
 void
-byteswap(...)
+byteswap2(...)
 	ALIAS:
 	   Unicode::String::byteswap2 = 2
 	   Unicode::String::byteswap4 = 4

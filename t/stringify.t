@@ -6,7 +6,8 @@ Unicode::String::stringify_as("hex");
 
 $u = latin1("gjøk");
 
-print "$u\n";
+print $u->hex, "\n";
+
 print "not " unless "$u" eq "U+0067 U+006a U+00f8 U+006b";
 print "ok 1\n";
 

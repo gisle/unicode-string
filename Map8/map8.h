@@ -1,6 +1,11 @@
+#ifdef PERL
+#include "EXTERN.h"
+#include "perl.h"
+#else
 typedef unsigned long   U32;
 typedef unsigned short  U16;
 typedef unsigned char   U8;
+#endif
 
 typedef U16 (*nochar_cb)(U16);
 

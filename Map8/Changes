@@ -1,3 +1,18 @@
+1998-02-13   Gisle Aas <aas@sn.no>
+
+   Release 0.03
+
+   Renamed 'map8.c' to 'map8x.c' because some bad systems would
+   overwrite it with 'Map8.c'.
+
+   Attach mapper using magic.  The Unicode::Map8 object is now a
+   plain HASH.  That should help when subclassing.
+
+   Support mapping using callback methods.  One one-to-one mapping
+   supported by the callbacks yet.
+
+
+
 1998-01-19   Gisle Aas <aas@sn.no>
 
    Release 0.02

@@ -1,8 +1,10 @@
-1998-01-17   Gisle Aas <aas@sn.no>
+1998-01-19   Gisle Aas <aas@sn.no>
 
    Release 0.02
 
    Documentation update
+   
+   Added the umap script.
 
    Fix the MACRON/OVERLINE bug in the iso-8859-[149] encodings
 

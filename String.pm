@@ -12,7 +12,7 @@ require DynaLoader;
 
 @EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr uhex);
 
-$VERSION = '2.00'; # $Id$
+$VERSION = '2.01'; # $Id$
 
 $UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 
@@ -43,6 +43,7 @@ my $stringify_as = \&utf8;
 # some aliases
 *ucs2 = \&utf16;
 *uhex = \&hex;
+*uchr = \&chr;
 
 sub new
 {
@@ -359,7 +360,7 @@ sub name
 }
 
 
-sub uchr
+sub chr
 {
     my($self,$val) = @_;
     unless (ref $self) {
@@ -511,7 +512,7 @@ Unicode::String - String of Unicode characters (UCS2/UTF16)
 
 A I<Unicode::String> object represents a sequence of Unicode
 characters.  The Unicode Standard is a fixed-width, uniform encoding
-scheme for written charaters and text.  This encoding treats
+scheme for written characters and text.  This encoding treats
 alphabetic characters, ideographic characters, and symbols
 identically, which means that they can be used in any mixture and with
 equal facility.  Unicode is modeled on the ASCII character set, but
@@ -519,13 +520,229 @@ uses a 16-bit encoding to support full multilingual text.
 
 Internally a I<Unicode::String> object is a string of 2 byte values in
 network byte order (big-endian).  The class provide various methods to
-convert from and to various external formats (ucs4 / utf16 / utf8 /
-utf7 / latin1 / hex).  All string manipulations are made on strings in
-this the internal 16-bit format.
+convert from and to various external formats, bit all string
+manipulations are made on strings in this the internal 16-bit format.
+
+The functions utf16(), utf8(), utf7(), ucs2(), ucs4(), latin1(),
+uchr() can be imported from the I<Unicode::String> module and will
+work as constructors initialized with strings of the corresponding
+encoding.  The ucs2() and utf16() are really aliases for the same
+function.
+
+The I<Unicode::String> objects overload various operators, so they
+will normally work like plain 8-bit strings in Perl.  This includes
+conversions to strings, numbers and booleans as well as assignment,
+concatenation and repetition.
+
+=head1 METHODS
+
+The following methods are available:
+
+=over 4
+
+=item Unicode::String->stringify_as( [$enc] )
+
+This class method specify which encoding will be used when
+I<Unicode::String> objects are implicitly converted to plain strings.
+It also define which encoding to assume for the argument of the
+I<Unicode::String> constructor new().  Without an encoding argument,
+stringify_as() returns the current encoding ctor function.  The
+encoding argument ($enc) can be one of the values: "ucs4", "ucs2",
+"utf16", "utf8", "utf7", "latin1", "hex".  The default is "utf8".
+
+=item $us = Unicode::String->new( [$initial_value] )
+
+This is the customary object constructor.  Without argument, it
+creates an empty I<Unicode::String> object.  If an $initial_value
+argument is given, it is decoded according to the specified
+stringify_as() encoding and used to initialize the newly created
+object.
+
+Normally you create I<Unicode::String> objects by importing some of
+the encoding methods below as functions into your namespace and
+calling them with an appropriate argument.
+
+=item $us->ucs4( [$newval] )
+
+The UCS-4 encoding use 32 bits per character.  The main benefit of this
+encoding is that you don't have to deal with surrogate pairs.  Encoded
+as a Perl string we use 4-bytes in network byte order for each
+character.
+
+The ucs4() method always return the old value of $us and if given an
+argument decodes the UCS-4 string and set this as the new value of $us.
+The characters in $newval must be in the range 0x0 .. 0x10FFFF.
+Characters outside this range is ignored.
+
+=item $us->ucs2( [$newval] )
+
+=item $us->utf16( [$newval] )
+
+The ucs2() and utf16() are really just different names for the same
+method.  The UCS-2 encoding use 16 bits per character.  The UTF-16
+encoding is identical to UCS-2, but includes the use of surrogate
+pairs, which makes it possible to encode characters in the range
+0x010000 .. 0x10FFFF with the use of two consecutive 16-bit chars.
+Encoded as a Perl string we use 2-bytes in network byte order for each
+character (or surrogate code).
+
+The ucs2() method always return the old value of $us and if given an
+argument set this as the new value of $us.
+
+=item $us->utf8( [$newval] )
+
+The UTF-8 encoding use 8-bit for the encoding of characters in the
+range 0x0 .. 0x7F, 16-bit for the encoding of characters in the range
+0x80 .. 0x7FF, 24-bit for the encoding of characters in the range
+0x800 .. 0xFFFF and 32-bit for characters in the range 0x01000
+.. 0x10FFFF.  Americans like this encoding, because plain US-ASCII
+characters are still US-ASCII.  Another benefit is that the character
+'\0' only occurs as the encoding of 0x0, thus the normal
+NUL-terminated strings (popular in the C programming language) can
+still be used.
+
+The utf8() method always return the old value of $us encoded using
+UTF-8 and if given an argument decodes the UTF-8 string and set this as
+the new value of $us.
+
+=item $us->utf7( [$newval] )
+
+The UTF-7 encoding only use plain US-ASCII characters for the
+encoding.  This makes it safe for transport through 8-bit stripping
+protocols.  Characters outside the US-ASCII range are base64-encoded
+and '+' is used as an escape character.  The UTF-7 encoding is
+described in RFC1642.
+
+The utf7() method always return the old value of $us encoded using
+UTF-7 and if given an argument decodes the UTF-7 string and set this as
+the new value of $us.
+
+If the (global) variable $Unicode::String::UTF7_OPTIONAL_DIRECT_CHARS
+is true, then a wider range of characters are encoded as themselves.
+It is TRUE by default.  The characters affected by this are:
+
+   ! " # $ % & * ; < = > @ [ ] ^ _ ` { | }
+
+=item $us->latin1( [$newval] )
+
+The first 256 codes of Unicode is identical to the ISO-8859-1 8-bit
+encoding, also known as Latin-1.  The latin1() method always return
+the old value of $us and if given an argument set this as the new
+value of $us.  Characters outside the 0x0 .. 0xFF range are ignored
+when returning a Latin-1 string.  If you want more control over the
+mapping from Unicode to Latin-1, use the I<Unicode::Map8> class.  This
+is also the way to deal with other 8-bit character sets.
+
+=item $us->hex( [$newval] )
+
+This method() return a plain ASCII string where each Unicode character
+is represented by the "U+XXXX" string and separated by a single space
+character.  This format can also be used to set the value of $us (in
+which case the "U+" is optional).
+
+=item $us->as_string;
+
+Converts a I<Unicode::String> to a plain string according to the
+setting of stringify_as().  The default stringify_as() method is
+"utf8".
+
+=item $us->as_num;
+
+Converts a I<Unicode::String> to a number.  Currently only the digits
+in the range 0x30 .. 0x39 are recognized.  The plan is to eventually
+support all Unicode digit characters.
+
+=item $us->as_bool;
+
+Converts a I<Unicode::String> to a boolean value.  Only the empty
+string is FALSE.  A string consisting of only the character U+0030 is
+considered TRUE, even if Perl consider "0" to be FALSE.
+
+=item $us->repeat( $count );
+
+Returns a new I<Unicode::String> where the content of $us is repeated
+$count times.  This operation is also overloaded as:
+
+  $us x $count
+
+=item $us->concat( $other_string );
+
+Concatenates the string $us and the string $other_string.  If
+$other_string is not an I<Unicode::String> object, then it is first
+passed to the Unicode::String->new constructor function.  This
+operation is also overloaded as:
+
+  $us . $other_string
+
+
+=item $us->append( $other_string );
+
+Appends the string $other_string to the value of $us.  If
+$other_string is not an I<Unicode::String> object, then it is first
+passed to the Unicode::String->new constructor function.  This
+operation is also overloaded as:
+
+  $us .= $other_string
+
+=item $us->copy;
+
+Returns a copy of the current I<Unicode::String> object.  This
+operation is overloaded as the assignment operator.
+
+=item $us->length;
+
+Returns the length of the I<Unicode::String>.  Surrogate pairs are
+still counted as 2.
+
+=item $us->unpack;
+
+Returns a list of integers each representing an UTF-16 character code.
+
+=item $us->pack( @uchr );
+
+Sets the value of $us as a sequence of UTF-16 characters with the
+characters codes given as parameter.
+
+=item $us->ord;
+
+Returns the character code of the first character in $us.  The ord()
+method deals with surrogate pairs, which gives us the following range
+of the result 0x0 .. 0x10FFFF.
+
+=item $us->chr( $code );
+
+Sets the value of $us to be a string containing the character assigned
+code $code.  The argument $code must be an integer in the range 0x0
+.. 0x10FFFF.  If the code is greater than 0xFFFF a surrogate pair
+created.
+
+=item $us->name
+
+In scalar context returns the official Unicode name of the first
+character in $us.  In array context returns the name of all characters
+in $us.  Also see L<Unicode::CharName>.
+
+=item $us->substr( $offset, [$length, [$subst]] )
+
+Returns a sub-string of $us.  Works similar to the builtin substr
+function, but because we can't make LVALUE subs yet, you have to pass
+the string you want to assign to the sub-string as the 3rd parameter.
+
+=item $us->index( $other, [$pos] );
+
+Locates the position of $other within $us, possibly starting the
+search at position $pos.
+
+=item $us->chop;
+
+Chops off the last character of $us and returns it (as a
+I<Unicode::String> object).
+
+=back
 
 =head1 COPYRIGHT
 
-Copyright 1997 Gisle Aas.
+Copyright 1997-1998 Gisle Aas.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
@@ -535,7 +752,7 @@ modify it under the same terms as Perl itself.
 
 #
 # Some old code that is not used any more (because the methods are
-# now implemented as XS)
+# now implemented as XS) and which I did not want to throw away yet.
 #
 
 sub ucs4_inperl

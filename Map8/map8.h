@@ -8,7 +8,6 @@ typedef struct map8
 {
   U16     to_16[256];
   U16*    to_8 [256]; /* two level table */
-  U16     nomap[256];
 
   /* callback functions */
   nochar_cb  nomap8;

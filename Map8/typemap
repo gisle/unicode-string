@@ -6,5 +6,12 @@ T_MAP8
 
 OUTPUT
 T_MAP8
-        sv_setref_iv($arg, \"Unicode::Map8\", 0);
+        /* Make a HASH object, and attach the map to it */
+	sv_upgrade($arg, SVt_RV);
+	SvRV($arg) = newHV();
+	SvROK_on($arg);
+        {
+	    HV* stash = gv_stashpv(\"Unicode::Map8\", TRUE);
+	    (void)sv_bless($arg, stash);
+        }
         attach_map8($arg, $var);

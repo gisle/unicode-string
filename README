@@ -1,22 +1,19 @@
 These are experimental modules to handle various Unicode issues.  This
 is software under construction.
 
-These are experimental modules to handle various Unicode issues.  This
-is software under construction.  Not even alpha state right now.
+More information on what Unicode is and can do for you are to be found
+at http://www.unicode.org
 
-More information on Unicode can be found at http://www.unicode.org
-
-Current modules are:
+The current set of modules are:
 
   Unicode::String   - represent strings of Unicode chars
   Unicode::CharName - look up character names
   Unicode::Map8     - mapping tables towards 8-bit char sets
 
+(the Unicode::Map8 module is distributed separately)
+
 
 Some of ideas to investigate for the Unicode modules are:
-
-   o Fast convertion to other large char sets (east-asien).  I don't
-     know anything about this.
 
    o Composition/decomposition support:
      $u->decomp;  # will decomposite as much as possible:  "å"  --> "a°"
@@ -47,6 +44,11 @@ Some of ideas to investigate for the Unicode modules are:
    o Unicode filehandles (automatic convertion from UTF-7/UTF-8/8-bit 
      char set when reading,writing to filehandles)
 
+   o Fast convertion to other large char sets (east-asien).  I don't
+     know anything about this.
+
+
+EXAMPLES
 
 The following are examples of use of the current modules:
 
@@ -69,7 +71,7 @@ The following are examples of use of the current modules:
 
 COPYRIGHT
 
-  © 1997 Gisle Aas. All rights reserved.
+  © 1997-1998 Gisle Aas. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

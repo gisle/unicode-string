@@ -3,6 +3,6 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
 	NAME     => 'Unicode',
-	VERSION  => '19970704_a',
+	VERSION  => '19970707',
  	dist     => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
 );

@@ -1,3 +1,12 @@
+2000-01-21   Gisle Aas <gisle@aas.no>
+
+   Release 0.09
+
+   Added ISO-8859-13 and ISO-8859-15 mappings.  Contributed by
+   Alexander Smishlajev <als@turnhere.com>.
+
+
+
 1999-09-14   Gisle Aas <gisle@aas.no>
 
    Release 0.08

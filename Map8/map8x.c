@@ -217,13 +217,18 @@ U16* map8_to_str16(Map8* m, U8* str8, U16* str16, int len, int* rlen)
     U16 c = map8_to_char16(m, *str8);
     if (c != NOCHAR) {
       *tmp16++ = c;
-    } else {
-      if (m->def_to16 != NOCHAR)
-	*tmp16++ = m->def_to16;
-      else if (m->cb_to16) {
-	c = (m->cb_to16)(*str8, m);
-	if (c != NOCHAR)
-	  *tmp16++ = htons(c);
+    } else if (m->def_to16 != NOCHAR) {
+      *tmp16++ = m->def_to16;
+    } else if (m->cb_to16) {
+      U16* buf;
+      STRLEN len;
+      buf = (m->cb_to16)(*str8, m, &len);
+      if (buf && len > 0) {
+	if (len == 1) {
+	  *tmp16++ = *buf;
+	} else {
+	  fprintf(stderr, "one-to-many mapping not implemented yet\n");
+	}
       }
     }
     str8++;
@@ -255,13 +260,18 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
     U16 c = map8_to_char8(m, ntohs(*str16));
     if (c != NOCHAR && c <= 0xFF) {
       *tmp8++ = (U8)c;
-    } else {
-      if (m->def_to8 != NOCHAR)
+    } else if (m->def_to8 != NOCHAR) {
 	*tmp8++ = (U8)m->def_to8;
-      else if (m->cb_to8) {
-	c = (m->cb_to8)(ntohs(*str16), m);
-	if (c != NOCHAR && c <= 0xFF)
-	  *tmp8++ = (U8)c;
+    } else if (m->cb_to8) {
+      U8* buf;
+      STRLEN len;
+      buf = (m->cb_to8)(ntohs(*str16), m, &len);
+      if (buf && len > 0) {
+	if (len == 1) {
+	  *tmp8++ = *buf;
+	} else {
+	  fprintf(stderr, "one-to-many mapping not implemented yet\n");
+	}
       }
     }
     str16++;
@@ -294,22 +304,34 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
   while (len--) {
     /* First translate to common Unicode representation */
     U16 uc = map8_to_char16(m1, *from);
-    if (uc == NOCHAR) {
-      if (m1->def_to16 != NOCHAR)
-	uc = m1->def_to16;
-      else if (m1->cb_to16) {
-	uc = (m1->cb_to16)(*from, m1);
-	if (uc == NOCHAR) {
-	  from++;
-	  continue;  /* no mapping exists for this char */
-	}
-	uc = htons(uc);
-      } else {
-	from++;
-	continue;
-      }
+
+    if (uc != NOCHAR)
+      goto got_16;
+
+    if (m1->def_to16 != NOCHAR) {
+      uc = m1->def_to16;
+      goto got_16;
     }
+
+    if (m1->cb_to16) {
+      U16 *buf;
+      STRLEN len;
+      buf = (m1->cb_to16)(*from, m1, &len);
+      if (buf && len == 1) {
+	uc = htons(*buf);
+	goto got_16;
+      }
+      
+      if (len > 1)
+	fprintf(stderr, "one-to-many mapping not implemented yet\n");
+    }
+
+    /* Never managed to find a mapping to Unicode, skip it */
     from++;
+    continue;
+
+  got_16:
+    from++;   /* 'uc' char translated now */
 
     /* Then map 'uc' back to the second 8-bit encoding */
     u8 = map8_to_char8(m2, ntohs(uc));
@@ -317,10 +339,13 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
       if (m2->def_to8 != NOCHAR)
 	u8 = m2->def_to8;
       else if (m2->cb_to8) {
-	u8 = (m2->cb_to8)(ntohs(uc), m2);
-	if (u8 == NOCHAR || u8 > 0xFF)
+	U8* buf;
+	STRLEN len;
+	buf = (m2->cb_to8)(ntohs(uc), m2, &len);
+	if (!buf || len != 1)
 	  continue;  /* no mapping exists for this char */
-      } else
+      }
+      else
 	continue;
     }
 
@@ -341,7 +366,7 @@ int map8_empty_block(Map8* m, U8 block)
 }
 
 
-#ifdef DEBUGGING
+#ifdef MAP8_DEBUGGING
 
 void
 map8_print(Map8* m)

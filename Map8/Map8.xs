@@ -218,20 +218,62 @@ to8(map, str16)
 	Map8* map
 	PREINIT:
 	    STRLEN len;
-	    STRLEN rlen;
-	    char* str8;
+	    STRLEN origlen;
+	    char* str;
+	    char* cur;
 	INPUT:
-	    char* str16 = SvPV(ST(1), len);
+	    U16* str16 = (U16*)SvPV(ST(1), len);
 	CODE:
 	    if (dowarn && (len % 2) != 0)
 		warn("Uneven length of wide string");
 	    len /= 2;
+            origlen = len;
 	    RETVAL = newSV(len + 1);
 	    SvPOK_on(RETVAL);
-	    str8 = SvPVX(RETVAL);
-	    map8_to_str8(map, (U16*)str16, str8, len, &rlen);
-	    str8[rlen] = '\0';
-	    SvCUR_set(RETVAL, rlen);
+	    str = SvPVX(RETVAL);
+
+	    for (cur = str; len--; str16++) {
+                U16 c16 = ntohs(*str16);
+		U16 c = map8_to_char8(map, c16);
+		if (c != NOCHAR) {
+		    *cur++ = (U8)c;
+		} else if (map->def_to8 != NOCHAR) {
+		    *cur++ = (U8)map->def_to8;
+		} else if (map->cb_to8) {
+		    U8* buf;
+		    STRLEN blen;
+                    buf = map->cb_to8(c16, map, &blen);
+		    if (buf && blen > 0) {
+			if (blen == 1) {
+			    *cur++ = *buf;
+			} else {
+			    /* we might need to grow the string buffer.
+                             * Find out the minimum requirement and a
+                             * guess that avoids growing each time if
+                             * several char map longer strings
+                             */
+			    STRLEN curlen = cur - str;
+			    STRLEN guess = origlen * (curlen + blen) /
+                                           (origlen - len);
+			    STRLEN min = curlen + blen + len + 1;
+
+			    if (guess < min)
+				guess = min;
+                            else if (curlen <= 1 && guess > min*4)
+				guess = min*4;
+
+			    str = SvGROW(RETVAL, guess);
+		            cur = str + curlen;
+                            while (blen--)
+				*cur++ = *buf++;
+			}
+		    }
+		}
+            }
+
+	    SvCUR_set(RETVAL, cur - str);
+	    *cur = '\0';
+
 	OUTPUT:
 	    RETVAL
 
@@ -240,17 +282,58 @@ to16(map, str8)
 	Map8* map
 	PREINIT:
 	    STRLEN len;
-	    STRLEN rlen;
-	    char* str16;
+	    STRLEN origlen;
+	    U16* str;
+	    U16* cur;
 	INPUT:
-	    char* str8 = SvPV(ST(1), len);
+	    U8* str8 = SvPV(ST(1), len);
 	CODE:
-	    RETVAL = newSV(len*2 + 2);
+            origlen = len;
+	    RETVAL = newSV(sizeof(U16)*len + 1);
 	    SvPOK_on(RETVAL);
-	    str16 = SvPVX(RETVAL);
-	    map8_to_str16(map, str8, (U16*)str16, len, &rlen);
-	    str16[rlen*2] = '\0';
-	    SvCUR_set(RETVAL, rlen*2);
+	    str = (U16*)SvPVX(RETVAL);
+
+	    for (cur = str; len--; str8++) {
+		U16 c = map8_to_char16(map, *str8);
+		if (c != NOCHAR) {
+		    *cur++ = c;
+		} else if (map->def_to16 != NOCHAR) {
+		    *cur++ = map->def_to16;
+		} else if (map->cb_to16) {
+		    U16* buf;
+		    STRLEN blen;
+                    buf = map->cb_to16(*str8, map, &blen);
+		    if (buf && blen > 0) {
+			if (blen == 1) {
+			    *cur++ = *buf;
+			} else {
+			    /* we might need to grow the string buffer.
+                             * Find out the minimum requirement and a
+                             * guess that avoids growing each time if
+                             * several char map longer strings
+                             */
+			    STRLEN curlen = cur - str;
+			    STRLEN guess = origlen * (curlen + blen) /
+                                           (origlen - len);
+			    STRLEN min = curlen + blen + len + 1;
+
+			    if (guess < min)
+				guess = min;
+                            else if (curlen <= 1 && guess > min*4)
+				guess = min*4;
+
+			    str = (U16*)SvGROW(RETVAL, sizeof(U16)*guess);
+		            cur = str + curlen;
+                            while (blen--)
+				*cur++ = *buf++;
+			}
+		    }
+		}
+            }
+
+	    SvCUR_set(RETVAL, (cur - str)*sizeof(U16));
+	    *cur = '\0';
+
 	OUTPUT:
 	    RETVAL
 

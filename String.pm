@@ -176,7 +176,7 @@ sub utf16
     if (@_) {
 	$$self = shift;
 	if ((length($$self) % 2) != 0) {
-	    warn "Uneven UTF16 data";
+	    warn "Uneven UTF16 data" if $^W;
 	    $$self .= "\0";
 	}
 	if ($$self =~ /^\xFF\xFE/) {
@@ -251,11 +251,11 @@ sub utf7   # rfc1642
 		require MIME::Base64;
 		$$self .= MIME::Base64::decode($base64);
 		if ((length($$self) % 2) != 0) {
-		    warn "Uneven UTF7 data";
+		    warn "Uneven UTF7 base64-data" if $^W;
 		    chop($$self); # correct it
 		}
             } elsif ($_[0] =~ /\G\+/gc) {
-		warn "Bad UTF7 data escape";
+		warn "Bad UTF7 data escape" if $^W;
 		$$self .= "\0+";
 	    } else {
 		die "This should not happen " . pos($_[0]);
@@ -520,12 +520,12 @@ uses a 16-bit encoding to support full multilingual text.
 
 Internally a I<Unicode::String> object is a string of 2 byte values in
 network byte order (big-endian).  The class provide various methods to
-convert from and to various external formats, bit all string
+convert from and to various external formats, and all string
 manipulations are made on strings in this the internal 16-bit format.
 
 The functions utf16(), utf8(), utf7(), ucs2(), ucs4(), latin1(),
 uchr() can be imported from the I<Unicode::String> module and will
-work as constructors initialized with strings of the corresponding
+work as constructors initializing strings of the corresponding
 encoding.  The ucs2() and utf16() are really aliases for the same
 function.
 
@@ -543,12 +543,13 @@ The following methods are available:
 =item Unicode::String->stringify_as( [$enc] )
 
 This class method specify which encoding will be used when
-I<Unicode::String> objects are implicitly converted to plain strings.
-It also define which encoding to assume for the argument of the
+I<Unicode::String> objects are implicitly converted to and from plain
+strings.  It define which encoding to assume for the argument of the
 I<Unicode::String> constructor new().  Without an encoding argument,
 stringify_as() returns the current encoding ctor function.  The
-encoding argument ($enc) can be one of the values: "ucs4", "ucs2",
-"utf16", "utf8", "utf7", "latin1", "hex".  The default is "utf8".
+encoding argument ($enc) is a string with one of the following values:
+"ucs4", "ucs2", "utf16", "utf8", "utf7", "latin1", "hex".  The default
+is "utf8".
 
 =item $us = Unicode::String->new( [$initial_value] )
 
@@ -560,7 +561,7 @@ object.
 
 Normally you create I<Unicode::String> objects by importing some of
 the encoding methods below as functions into your namespace and
-calling them with an appropriate argument.
+calling them with an appropriate encoded argument.
 
 =item $us->ucs4( [$newval] )
 
@@ -581,7 +582,7 @@ Characters outside this range is ignored.
 The ucs2() and utf16() are really just different names for the same
 method.  The UCS-2 encoding use 16 bits per character.  The UTF-16
 encoding is identical to UCS-2, but includes the use of surrogate
-pairs, which makes it possible to encode characters in the range
+pairs.  Surrogates make it possible to encode characters in the range
 0x010000 .. 0x10FFFF with the use of two consecutive 16-bit chars.
 Encoded as a Perl string we use 2-bytes in network byte order for each
 character (or surrogate code).
@@ -618,8 +619,8 @@ UTF-7 and if given an argument decodes the UTF-7 string and set this as
 the new value of $us.
 
 If the (global) variable $Unicode::String::UTF7_OPTIONAL_DIRECT_CHARS
-is true, then a wider range of characters are encoded as themselves.
-It is TRUE by default.  The characters affected by this are:
+is TRUE, then a wider range of characters are encoded as themselves.
+It is even TRUE by default.  The characters affected by this are:
 
    ! " # $ % & * ; < = > @ [ ] ^ _ ` { | }
 
@@ -706,14 +707,14 @@ characters codes given as parameter.
 =item $us->ord;
 
 Returns the character code of the first character in $us.  The ord()
-method deals with surrogate pairs, which gives us the following range
-of the result 0x0 .. 0x10FFFF.
+method deals with surrogate pairs, which gives us a result-range of
+0x0 .. 0x10FFFF.  If the $us string is empty, undef is returned.
 
 =item $us->chr( $code );
 
 Sets the value of $us to be a string containing the character assigned
 code $code.  The argument $code must be an integer in the range 0x0
-.. 0x10FFFF.  If the code is greater than 0xFFFF a surrogate pair
+.. 0x10FFFF.  If the code is greater than 0xFFFF then a surrogate pair
 created.
 
 =item $us->name
@@ -739,6 +740,12 @@ Chops off the last character of $us and returns it (as a
 I<Unicode::String> object).
 
 =back
+
+=head1 SEE ALSO
+
+L<Unicode::CharName>,
+L<Unicode::Map8>,
+http://www.unicode.org/
 
 =head1 COPYRIGHT
 

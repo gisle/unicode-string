@@ -143,10 +143,14 @@ sub stringify_as
     } else {
 	$class = "Unicode::String";
     }
-    my $as = shift;
-    croak("Don't know how to stringify as '$as'")
-        unless exists $stringify{$as};
-    $stringify_as = $stringify{$as};
+    my $old = $stringify_as;
+    if (@_) {
+	my $as = shift;
+	croak("Don't know how to stringify as '$as'")
+	    unless exists $stringify{$as};
+	$stringify_as = $stringify{$as};
+    }
+    $old;
 }
 
 
@@ -260,18 +264,19 @@ sub utf7   # rfc1642
     if (defined wantarray) {
 	# encode into $old
 	$old = "";
-	local($_) = $$self;
-	while (length $_) {
+	pos($$self) = 0;
+	my $len = length($$self);
+	while (pos($$self) < $len) {
             if (($UTF7_OPTIONAL_DIRECT_CHARS &&
-		 s/^((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)//)
-	        || s/^((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//)
+		 $$self =~ /\G((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)/gc)
+	        || $$self =~ /\G((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)/gc)
             {
 		#print "Plain ", utf16($1)->latin1, "\n";
 		$old .= utf16($1)->latin1;
 	    }
             elsif (($UTF7_OPTIONAL_DIRECT_CHARS &&
-                    s/^((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)//s)
-                   || s/^((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//s)
+                    $$self =~ /\G((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)/gc)
+                   || $$self =~ /\G((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)/gc)
             {
 		#print "Unplain ", utf16($1)->hex, "\n";
 		if ($1 eq "\0+") {
@@ -281,37 +286,40 @@ sub utf7   # rfc1642
 		    my $base64 = MIME::Base64::encode($1, '');
 		    $base64 =~ s/=+$//;
 		    $old .= "+$base64-";
+		    # XXX should we determine when the final "-" is
+		    # unnecessary? depends on next char not being part
+		    # of the base64 char set.
 		}
 	    } else {
-		die "This should not happen '$old'";
+		die "This should not happen " . pos($$self);
 	    }
 	}
     }
     
     if (@_) {
 	# decode
-	my $new = shift;
+	my $len = length($_[0]);
 	$$self = "";
-	while (length $new) {
-	    if ($new =~ s/^([^+]+)//) {
+	while (pos($_[0]) < $len) {
+	    if ($_[0] =~ /\G([^+]+)/gc) {
 		$self->append(latin1($1));
-	    } elsif ($new =~ s/^\+-//) {
+	    } elsif ($_[0] =~ /\G\+-/gc) {
 		$$self .= "\0+";
-	    } elsif ($new =~ s/^\+([A-Za-z0-9+\/]+)-?//) {
+	    } elsif ($_[0] =~ /\G\+([A-Za-z0-9+\/]+)-?/gc) {
 		my $base64 = $1;
 		my $pad = length($base64) % 4;
 		$base64 .= "=" x (4 - $pad) if $pad;
-		#print "Base64: $base64\n";
 		require MIME::Base64;
-		my $data = MIME::Base64::decode($base64);
-		# XXX: might need to disgard last char of $data sometimes,
-		# depending on $pad
-		$$self .= $data;
-            } elsif ($new =~ s/^\+//) {
+		$$self .= MIME::Base64::decode($base64);
+		if ((length($$self) % 2) != 0) {
+		    warn "Uneven UTF7 data";
+		    chop($$self); # correct it
+		}
+            } elsif ($_[0] =~ /\G\+/gc) {
 		warn "Bad UTF7 data escape";
 		$$self .= "\0+";
 	    } else {
-		die "This should not happen '$new'";
+		die "This should not happen " . pos($_[0]);
 	    }
 	}
     }
@@ -362,6 +370,8 @@ sub hex
     if (@_) {
 	my $new = shift;
 	$new =~ tr/0-9A-Fa-f//cd;  # leave only hex chars
+	croak("Hex string length must be multiple of four")
+	    unless (length($new) % 4) == 0;
 	$$self = pack("H*", $new);
     }
     $old;
@@ -425,6 +435,18 @@ sub ord
 }
 
 
+sub name
+{
+    my $self = shift;
+    require Unicode::CharName;
+    if (wantarray) {
+	return map { Unicode::CharName::uname($_) } $self->ord;
+    } else {
+        return Unicode::CharName::uname(scalar($self->ord));
+    }
+}
+
+
 sub uchr
 {
     my($self,$val) = @_;
@@ -449,14 +471,25 @@ sub uchr
 
 sub substr
 {
-    my($self, $offset, $length) = @_;
+    my($self, $offset, $length, $substitute) = @_;
     $offset ||= 0;
     $offset *= 2;
     my $substr;
-    if (defined $length) {
-	$substr = substr($$self, $offset, $length*2);
+    if (defined $substitute) {
+	unless (UNIVERSAL::isa($substitute, 'Unicode::String')) {
+	    $substitute = Unicode::String->new($substitute);
+	}
+	if (defined $length) {
+	    $substr = substr($$self, $offset, $length*2) = $$substitute;
+	} else {
+	    $substr = substr($$self, $offset) = $$substitute;
+	}
     } else {
-	$substr = substr($$self, $offset);
+	if (defined $length) {
+	    $substr = substr($$self, $offset, $length*2);
+	} else {
+	    $substr = substr($$self, $offset);
+	}
     }
     bless \$substr, ref($self);
 }
@@ -480,5 +513,31 @@ sub rindex
     $pos ||= 0;
     die "NYI";
 }
+
+sub chop
+{
+    my $self = shift;
+    if (length $$self) {
+	my $chop = chop($$self);
+	$chop = chop($$self) . $chop;
+	return bless \$chop, ref($self);
+    }
+    undef;
+}
+
+# Ideas to be implemented
+sub scan;
+sub reverse;
+
+sub lc;
+sub lcfirst;
+sub uc;
+sub ucfirst;
+
+sub split;
+sub sprintf;
+sub study;
+sub tr;
+
 
 1;

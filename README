@@ -1,5 +1,5 @@
-These are experimental modules to handle various Unicode issues.  This
-is software under construction.
+These are experimental modules to handle various Unicode issues.  They
+were made before perl included native UTF8 support.
 
 More information on what Unicode is and can do for you are to be found
 at http://www.unicode.org
@@ -14,6 +14,8 @@ The current set of modules are:
 
 
 Some of ideas to investigate for the Unicode modules are:
+
+   o Depreciation because of perl's own utf8 support.
 
    o Composition/decomposition support:
      $u->decomp;  # will decomposite as much as possible:  "å"  --> "a°"
@@ -71,7 +73,7 @@ The following are examples of use of the current modules:
 
 COPYRIGHT
 
-  © 1997-1998 Gisle Aas. All rights reserved.
+  © 1997-1999 Gisle Aas. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

@@ -1,0 +1,86 @@
+#!/usr/bin/perl -w
+
+open(RFC, "rfc1345.txt") || die;
+
+my %mnemonics;
+my %fullname;
+
+my $charset;
+my @aliases;
+my $code;
+my @map;
+
+
+while (<RFC>) {
+    if (/^3\.\s/ .. /^4\.\s/) {  # only want chapter 3
+	if (/^ (\S+)\s+([0-9a-f]{4})\s+(.+)/) {
+	    $mnemonics{$1} = $2;
+	    $fullname{$3}  = $2;
+	}
+    }
+    if (/^5\.\s/ .. /^ACKNOWLEDGEMENTS/) {
+	if (/^  &charset\s+(\S+)/) {
+	    #print "$1\n";
+	    map_out();
+	    $charset = $1;
+	    @aliases = ();
+	    undef($code);
+	    @map = ();
+	} elsif (/^  &alias\s+(\S+)/) {
+	    #print " $1\n";
+	    push(@aliases, $1);
+	} elsif (/^  &bits\s+(\d+)/) {
+	    #print " BITS = $1\n";
+	    if ($1 ne '8') {
+		undef($charset);  # don't care about this one
+	    }
+	} elsif (/^  &code\s+(\d+)/) {
+	    #print " CODE=$1\n";
+	    $code = $1;
+	} elsif (/^  &duplicate\s+(\d+)\s+(\S+)/) {
+	    #print "DUP $1 $2\n";
+	    push(@map, [$1, $2]);
+	} elsif (/^  &([a-z][a-z0-9]+)/) {
+	    #print "$1\n";
+	} elsif (/^  (\S+ +.*)/ && $charset && defined($code)) {
+	    my $mne;
+	    for $mne (split(' ', $1)) {
+		if ($mne eq "??") {
+		    $code++;
+		    next;
+		} else {
+		    if ($code > 255) {
+			print STDERR "$charset: bad code $code\n";
+			undef($charset);  # ignore it
+			last;
+		    }
+		    push(@map, [$code++, $mne]);
+		}
+	    }
+	}
+    }
+}
+map_out();
+
+sub map_out
+{
+    return unless $charset;
+    print STDERR "$charset @aliases\n";
+
+    open(BINMAP, "| ./txt2bin >'mapping/$charset.bin'") or die;
+    for (@map) {
+	my($code, $mne) = @$_;
+	my $x4 = $mnemonics{$mne};
+	unless ($x4) {
+	    print STDERR "$charset: no code for $mne\n";
+	    next;
+	}
+	if ($code < 0 || $code > 255) {
+	    print STDERR "$charset: bad code $code\n";
+	    next;
+	}
+	printf BINMAP "0x%02x 0x%s\n", $code, $x4;
+    }
+    close(BINMAP);
+    
+}

@@ -16,12 +16,14 @@ typedef unsigned short  U16;
 typedef unsigned char   U8;
 #endif
 
-typedef U16 (*map8_cb)(U16);
+struct map8;
+
+typedef U16 (*map8_cb)(U16, struct map8*);
 
 typedef struct map8
 {
   U16     to_16[256];
-  U16*    to_8 [256]; /* two level table */
+  U16*    to_8 [256]; /* two level table, first level is (char>>8) */
 
   /* default mapping values (to use if mapping is NOCHAR) */
   U16     def_to8;
@@ -30,6 +32,8 @@ typedef struct map8
   /* callback functions (to use if mapping and default is NOCHAR */
   map8_cb cb_to8;
   map8_cb cb_to16;
+
+  void*   obj;  /* extra info of some kind */
 } Map8;
 
 /* A binary mapping file is a sequence of one or more of these records.

@@ -41,6 +41,7 @@ map8_new()
   m->def_to16 = NOCHAR;
   m->cb_to8   = 0;
   m->cb_to16  = 0;
+  m->obj      = 0;
 
   num_maps++;
   /* fprintf(stderr, "New %p (%d created)\n", m, num_maps); */
@@ -220,7 +221,7 @@ U16* map8_to_str16(Map8* m, U8* str8, U16* str16, int len, int* rlen)
       if (m->def_to16 != NOCHAR)
 	*tmp16++ = m->def_to16;
       else if (m->cb_to16) {
-	c = (m->cb_to16)(*str8);
+	c = (m->cb_to16)(*str8, m);
 	if (c != NOCHAR)
 	  *tmp16++ = htons(c);
       }
@@ -258,7 +259,7 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
       if (m->def_to8 != NOCHAR)
 	*tmp8++ = (U8)m->def_to8;
       else if (m->cb_to8) {
-	c = (m->cb_to8)(ntohs(*str16));
+	c = (m->cb_to8)(ntohs(*str16), m);
 	if (c != NOCHAR && c <= 0xFF)
 	  *tmp8++ = (U8)c;
       }
@@ -297,7 +298,7 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
       if (m1->def_to16 != NOCHAR)
 	uc = m1->def_to16;
       else if (m1->cb_to16) {
-	uc = (m1->cb_to16)(*from);
+	uc = (m1->cb_to16)(*from, m1);
 	if (uc == NOCHAR) {
 	  from++;
 	  continue;  /* no mapping exists for this char */
@@ -316,7 +317,7 @@ U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
       if (m2->def_to8 != NOCHAR)
 	u8 = m2->def_to8;
       else if (m2->cb_to8) {
-	u8 = (m2->cb_to8)(ntohs(uc));
+	u8 = (m2->cb_to8)(ntohs(uc), m2);
 	if (u8 == NOCHAR || u8 > 0xFF)
 	  continue;  /* no mapping exists for this char */
       } else

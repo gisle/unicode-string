@@ -18,7 +18,8 @@ typedef unsigned char   U8;
 
 struct map8;
 
-typedef U16 (*map8_cb)(U16, struct map8*);
+typedef U8*  (*map8_cb8)  (U16, struct map8*, STRLEN*);
+typedef U16* (*map8_cb16) (U8,  struct map8*, STRLEN*);
 
 typedef struct map8
 {
@@ -30,8 +31,8 @@ typedef struct map8
   U16     def_to16;
 
   /* callback functions (to use if mapping and default is NOCHAR */
-  map8_cb cb_to8;
-  map8_cb cb_to16;
+  map8_cb8  cb_to8;
+  map8_cb16 cb_to16;
 
   void*   obj;  /* extra info of some kind */
 } Map8;
@@ -75,7 +76,7 @@ U8*   map8_recode_8(Map8*, Map8*, U8*, U8*, int, int*);
 
 int   map8_empty_block(Map8*, U8);
 
-#ifdef DEBUGGING
+#ifdef MAP8_DEBUGGING
 #include <stdio.h>
 
 void map8_print(Map8*);

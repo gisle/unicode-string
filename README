@@ -34,8 +34,10 @@ The following are examples of use:
    use Unicode::String qw(latin1 utf8);
 
    $u = utf8("this is a string\n");
+   print $u->ucs4;
    print $u->utf16;
    print $u->utf8;
+   print $u->utf7;
    print $u->latin1;
    print $u->hex;
 

@@ -1,6 +1,6 @@
 # Test string operations
 
-print "1..21\n";
+print "1..22\n";
 
 use Unicode::String qw(utf8 utf16);
 
@@ -96,3 +96,8 @@ $x = utf16("abbaabbbaa");
 print "not " unless $x->index(utf16("bb")) == 3;
 print "ok 21\n";
 
+#--- overload -->
+print "not " unless (utf8("a") . utf8("b"))->utf8 eq "ab" &&
+	            ("a" . utf8("b"))->utf8 eq "ab" &&
+                    (utf8("a") . "b")->utf8 eq "ab";
+print "ok 22\n";

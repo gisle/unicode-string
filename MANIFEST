@@ -1,0 +1,8 @@
+MANIFEST
+Makefile.PL
+README
+String/Makefile.PL
+String/String.pm
+String/String.xs
+Unicode/CharName.pm
+t/unicode.t

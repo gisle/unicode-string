@@ -1,0 +1,43 @@
+This is software under construction.  Not even alpha state right now.
+Programming interfaces will change.
+
+
+Unicode::Map8
+-------------
+
+The Unicode::Map8 class implement efficient mapping tables between
+8-bit character sets and 16 bit character sets like Unicode.  Quite a
+number of mapping tables between various known character sets and
+Unicode is distributed with this package.  The source of these tables
+is the vendor mapping tables provided by Unicode, Inc. and the tables
+found in RFC 1345.  New maps can easily be installed.
+
+EXAMPLE OF USE
+
+   require Unicode::Map8;
+   $no_map = Unicode::Map8->new("ISO646-NO") || die;
+   $l1_map = Unicode::Map8->new("latin1") || die;
+
+   my $ustr = $no_map->to16("V}re norske tegn b|r {res");
+   my $lstr = $l1_map->to8($ustr);
+   print "$lstr\n";
+
+
+INSTALLATION
+
+You should first install the Unicode perl module. Once this is
+accomplished you just perform the usual steps:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+
+
+COPYRIGHT
+
+  © 1998 Gisle Aas. All rights reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.

@@ -1,3 +1,11 @@
+1998-07-14   Gisle Aas <aas@sn.no>
+
+   Release 0.05
+
+   Avoid core dump when the requests mapping file does not exists.
+
+
+
 1998-02-19   Gisle Aas <aas@sn.no>
 
    Release 0.04

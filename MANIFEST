@@ -6,6 +6,8 @@ String/String.pm
 String/String.xs
 Unicode/CharName.pm
 t/charname.t
+t/encoding.t
 t/ord.t
+t/op.t
 t/string.t
 t/stringify.t

@@ -1,6 +1,8 @@
 These are experimental modules to handle various Unicode issues.  This
 is software under construction.  Not even alpha state right now.
 
+More information on Unicode can be found at http://www.unicode.org
+
 Current modules are:
 
   Unicode::String   - represent strings of Unicode chars.
@@ -11,6 +13,8 @@ Some of my plans for the Unicode modules are:
 
    - Internal representation should be 2-byte-big-endian in normal
      perl strings.  Blessed scalars as 'Unicode::String'.
+
+   - Unicode version 2.0 based.
 
    - Fast XS implementation of Unicode encodings (UTF-7/UTF-8/UTF-16/UCS4)
      Fast encoding/decoding to 8-bit char sets.

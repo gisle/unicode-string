@@ -1,11 +1,9 @@
-1998-01-18   Gisle Aas <aas@sn.no>
+1998-01-19   Gisle Aas <aas@sn.no>
 
    Release Unicode-String-2.00
 
-   Renamed package to Unicode-String (moved String modules up in
-   the distribution)
-
-   Export the uhex() constructor function
+   Renamed package to Unicode-String (moved String modules up one
+   level in the distribution)
 
    Handle assignment of utf16 strings with uneven byte length
 

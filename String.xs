@@ -16,6 +16,10 @@ extern "C" {
 }
 #endif
 
+#include "patchlevel.h"
+#if PATCHLEVEL <= 4 && !defined(PL_dowarn)
+   #define PL_dowarn dowarn
+#endif
 
 
 MODULE = Unicode::String	PACKAGE = Unicode::String
@@ -57,7 +61,7 @@ latin1(self,...)
 		    if (us == 0xFEFF) {
 			/* ignore BYTE ORDER MARK */
                     } else {
-			if (dowarn) warn("Data outside latin1 range (pos=%d, ch=U+%x)", s - beg, us);
+			if (PL_dowarn) warn("Data outside latin1 range (pos=%d, ch=U+%x)", s - beg, us);
 		    }
 		} else {
 	            *s++ = us;
@@ -70,11 +74,12 @@ latin1(self,...)
 	if (newsv) {
             U16 *usp;
             STRLEN len;
+	    STRLEN my_na;
 	    U8 *s = (U8*)SvPV(newsv, len);
 	    SvGROW(str, len*2 + 2);
 	    SvPOK_on(str);
 	    SvCUR_set(str,len*2);
-	    usp = (U16*)SvPV(str,na);
+	    usp = (U16*)SvPV(str,my_na);
             while (len--) {
 	       *usp++ = htons((U16)*s++);
             }
@@ -112,17 +117,18 @@ ucs4(self,...)
             U32* to, *beg;
 	    STRLEN len;   /* source length */
 	    U16* from = (U16*)SvPV(str, len);
+	    STRLEN my_na;
 	    len /= 2;
 	    RETVAL = newSV(len*4 + 1);
 	    SvPOK_on(RETVAL);
-	    beg = to = (U32*)SvPV(RETVAL, na);
+	    beg = to = (U32*)SvPV(RETVAL, my_na);
             while (len--) {
 		U16 us = ntohs(*from++);
 		if (us >= 0xD800 && us <= 0xDFFF) {  /* surrogate */
                     U16 low = len ? ntohs(*from) : 0;
                     if (us >= 0xDC00 || low < 0xDC00 || low > 0xDFFF) {
 			/* bad surrogate pair */
-			if (dowarn) warn("Bad surrogate pair U+%04x U+%04x", us, low);
+			if (PL_dowarn) warn("Bad surrogate pair U+%04x U+%04x", us, low);
 		    } else {
 			len--; from++;
 			*to++ = htonl((us-0xD800)*0x400 + low-0xDC00 + 0x10000);
@@ -147,7 +153,7 @@ ucs4(self,...)
 		if (uc > 0xFFFF) {
 		    if (uc > 0x10FFFF) {
 			/* can't be represented */
-			if (dowarn) warn("UCS4 char (0x%08x) can not be encoded as UTF16", uc);
+			if (PL_dowarn) warn("UCS4 char (0x%08x) can not be encoded as UTF16", uc);
                     } else {
 			/* generate two surrogates */
 			U16 high, low;
@@ -209,7 +215,7 @@ utf8(self,...)
                     U16 low = len ? ntohs(*from) : 0;
                     if (us >= 0xDC00 || low < 0xDC00 || low > 0xDFFF) {
 			/* bad surrogate pair */
-			if (dowarn) warn("Bad surrogate pair U+%04x U+%04x", us, low);
+			if (PL_dowarn) warn("Bad surrogate pair U+%04x U+%04x", us, low);
 		    } else {
 			len--; from++;
 			us = (us-0xD800)*0x400 + low-0xDC00 + 0x10000;
@@ -238,7 +244,7 @@ utf8(self,...)
 	            sv_catpvn(RETVAL, (char*)c, 4);
                 } else {
 		     /* this can't really happen since we start with utf16 */
-	             if (dowarn) warn("Large char (%08X) ignored", us);
+	             if (PL_dowarn) warn("Large char (%08X) ignored", us);
                 }
 	    }
 	    /* ensure '\0' termination of string */
@@ -263,11 +269,11 @@ utf8(self,...)
                 } else if ((u & 0340) == 0300) {
                     /* 2 bytes to decode */
 		    if (!len) {
-			if (dowarn) warn("Missing second byte of utf8 encoded char");
+			if (PL_dowarn) warn("Missing second byte of utf8 encoded char");
                     } else {
 			U8 u2 = *from;
 			if ((u2 & 0300) != 0200) {
-			    if (dowarn) warn("Bad second byte of utf8 encoded char");
+			    if (PL_dowarn) warn("Bad second byte of utf8 encoded char");
                         } else {
 			    from++; len--;  /* consume it */
 			    s[0] = (u & 0037) >> 2;
@@ -278,12 +284,12 @@ utf8(self,...)
                 } else if ((u & 0360) == 0340) {
 		    /* 3 bytes to decode */
 		    if (len < 2) {
-			if (dowarn) warn("Missing 2nd or 3rd byte of utf8 encoded char");
+			if (PL_dowarn) warn("Missing 2nd or 3rd byte of utf8 encoded char");
                     } else {
 			U8 u2 = from[0];
 			U8 u3 = from[1];
 			if ((u2 & 0300) != 0200 || (u3 & 0300) != 0200) {
-			    if (dowarn) warn("Bad 2nd or 3rd byte of utf8 encoded char");
+			    if (PL_dowarn) warn("Bad 2nd or 3rd byte of utf8 encoded char");
                         } else {
 			    from += 2; len -= 2; /* consume them */
 			    s[0] = (u  << 4) | (u2 & 0077) >> 2;
@@ -294,13 +300,13 @@ utf8(self,...)
                 } else if ((u & 0370) == 0360) {
 		    /* 4 bytes to decode, encoded using surrogates */
 	            if (len < 3) {
-			if (dowarn) warn("Missing 2nd, 3rd or 4th byte of utf8 encoded char");
+			if (PL_dowarn) warn("Missing 2nd, 3rd or 4th byte of utf8 encoded char");
                     } else {
 			if ((from[0] & 0300) != 0200 ||
 			    (from[1] & 0300) != 0200 ||
 			    (from[2] & 0300) != 0200)
 			{
-			    if (dowarn) warn("Bad 2nd, 3rd or 4th byte of utf8 encoded char");
+			    if (PL_dowarn) warn("Bad 2nd, 3rd or 4th byte of utf8 encoded char");
 			} else {
 			    U32 c = (u & 0007) << 6;
 			    c |= (from[0] & 0077); c <<= 6;
@@ -309,7 +315,7 @@ utf8(self,...)
 			    from += 3; len -= 3;
 			    /* c must now be encoded as two surrogates */
 			    if (c > 0x10FFFF) {
-				if (dowarn) warn("Can't represent 0x%08X as utf16", c);
+				if (PL_dowarn) warn("Can't represent 0x%08X as utf16", c);
                             } else {
 				/* generate two surrogates */
 				U16 high, low;
@@ -323,9 +329,9 @@ utf8(self,...)
 		    }
                 } else if ((u & 0374) == 0370) {
                     /* 5 bytes to decode, can't happend */
-		    if (dowarn) warn("Can't represent 5 byte encoded chars");
+		    if (PL_dowarn) warn("Can't represent 5 byte encoded chars");
                 } else {
-		    if (dowarn) warn("Bad utf8 byte (0x%02X) ignored", u);
+		    if (PL_dowarn) warn("Bad utf8 byte (0x%02X) ignored", u);
                 }
             }
 	}
@@ -392,7 +398,7 @@ byteswap2(...)
             }
 
 	    if (len) {
-		if (dowarn) 
+		if (PL_dowarn) 
 		    warn("byteswap argument #%d not long enough", i+1);
 
 		/* this will be a no-op unless dest/src are different */

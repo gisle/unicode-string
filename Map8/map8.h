@@ -37,5 +37,5 @@ U8*  map8_to_str8 (Map8*, U16*, U8*, int, int*);
 #include <stdio.h>
 
 void map8_print(Map8*);
-void map8_fprint(FILE*,Map8*);
+void map8_fprint(Map8*,FILE*);
 #endif

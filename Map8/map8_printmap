@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+use Unicode::Map8     qw(NOCHAR);
+use Unicode::CharName qw(uname);
+
+my $name = shift || usage();
+my $m = Unicode::Map8->new($name) || die "Can't locate map for '$name'\n";
+
+my @res8;
+my %map16;
+for (my $i = 0; $i < 256; $i++) {
+    my $u = $m->to_char16($i);
+    if ($u == NOCHAR) {
+	push(@res8, sprintf "# 0x%02X unmapped\n", $i);
+    } else {
+	push(@res8, sprintf "0x%02X 0x%04X   # %s\n", $i, $u, uname($u));
+	$map16{$u} = $i;
+    }
+}
+
+my @res16;
+my @blocks;
+for (my $block = 0; $block < 256; $block++) {
+    next if $m->_empty_block($block);
+    push(@blocks, $block);
+    for (my $i = 0; $i < 256; $i++) {
+	my $u = $block*256 + $i;
+	my $c = $m->to_char8($u);
+	next if $c == NOCHAR;
+	next if exists $map16{$u} && $map16{$u} == $c;
+	push(@res16, sprintf "0x%02X 0x%04X   # %s\n", $c, $u, uname($u));
+    }
+}
+
+print "# Mapping for '$name'\n";
+print "#\n";
+printf "# %d allocated blocks", scalar(@blocks);
+if (@blocks > 1 || $blocks[0] != 0) {
+    print " (", join(", ", map  "#".($_+1), @blocks), ")";
+}
+print "\n";
+print "#\n";
+print @res8;
+
+if (@res16) {
+    print "\n# Extra 16 mappings\n";
+    print @res16;
+}
+
+sub usage
+{
+    $0 =~ s,.*/,,;
+    die "Usage: $0 <map>\n";
+}

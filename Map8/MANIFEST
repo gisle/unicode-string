@@ -183,10 +183,8 @@ make_rfc1345_maps
 make_unicd_maps
 map8.c
 map8.h
-map8.txt
 map8_bin2txt
-map8_test.c
 map8_txt2bin
 rfc1345.txt
-test.pl
+t/map8.t
 typemap

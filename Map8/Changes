@@ -1,3 +1,11 @@
+1998-02-19   Gisle Aas <aas@sn.no>
+
+   Release 0.04
+   
+   Support one-to-many mappings by the use of callbacks.
+
+
+
 1998-02-13   Gisle Aas <aas@sn.no>
 
    Release 0.03

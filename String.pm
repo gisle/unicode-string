@@ -3,7 +3,7 @@ package Unicode::String;
 # Copyright (c) 1997, Gisle Aas.
 
 use strict;
-use vars qw($VERSION @ISA @EXPORT_OK);
+use vars qw($VERSION @ISA @EXPORT_OK $UTF7_OPTIONAL_DIRECT_CHARS);
 use Carp;
 
 require Exporter;
@@ -13,6 +13,8 @@ require DynaLoader;
 @EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr);
 
 $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
+
+$UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 
 bootstrap Unicode::String $VERSION;
 
@@ -156,7 +158,7 @@ sub utf16
 	$u->utf16($self);
 	return $u;
     }
-    my $old = $$self;;
+    my $old = $$self;
     if (@_) {
 	$$self = shift;
     }
@@ -196,7 +198,7 @@ sub utf8_inperl
     }
 
     my $old;
-    if (defined $$self) {
+    if (defined($$self) && defined wantarray) {
 	# encode UTF-8
 	my $uc;
 	for $uc (unpack("n*", $$self)) {
@@ -260,10 +262,17 @@ sub utf7   # rfc1642
 	$old = "";
 	local($_) = $$self;
 	while (length $_) {
-	    if (s/^((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//) {
+            if (($UTF7_OPTIONAL_DIRECT_CHARS &&
+		 s/^((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)//)
+	        || s/^((?:\0[A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//)
+            {
 		#print "Plain ", utf16($1)->latin1, "\n";
 		$old .= utf16($1)->latin1;
-	    } elsif (s/^((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//s) {
+	    }
+            elsif (($UTF7_OPTIONAL_DIRECT_CHARS &&
+                    s/^((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\!\"\#\$\%\&\*\;\<\=\>\@\[\]\^\_\`\{\|\}\s])+)//s)
+                   || s/^((?:[^\0].|\0[^A-Za-z0-9\'\(\)\,\-\.\/\:\?\s])+)//s)
+            {
 		#print "Unplain ", utf16($1)->hex, "\n";
 		if ($1 eq "\0+") {
 		    $old .= "+-";
@@ -345,7 +354,7 @@ sub hex
 	return $u;
     }
     my $old;
-    if (defined $$self) {
+    if (defined($$self) && defined wantarray) {
 	$old = unpack("H*", $$self);
 	$old =~ s/(....)/U+$1 /g;
 	$old =~ s/\s+$//;

@@ -1,4 +1,4 @@
-print "1..36\n";
+print "1..38\n";
 
 use Unicode::String qw(latin1 ucs4 utf16 utf8 utf7);
 
@@ -39,6 +39,7 @@ $u->latin1("ghi");
 
 print "not " unless $a eq "abc" && $b eq "def" && $u->latin1 eq "ghi";
 print "ok 7\n";
+
 
 $u = utf16("aa\0bcc\0d");
 print $u->hex, "\n";
@@ -258,4 +259,15 @@ print "ok 35\n";
 print "not " unless utf7($utf)->latin1 eq "a=4!æøå";
 print "ok 36\n";
 
+#--- Swapped bytes ---
+
+$u = utf16("ÿþa\0b\0c\0");
+print $u->hex, "\n";
+print "not " unless $u->latin1 eq "abc";
+print "ok 37\n";
+
+$u = utf16("þÿ\0a\0b\0c");
+print $u->hex, "\n";
+print "not " unless $u->latin1 eq "abc";
+print "ok 38\n";
 

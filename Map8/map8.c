@@ -14,22 +14,25 @@ map8_new()
   Map8* m;
   int i;
   m = (Map8*)malloc(sizeof(Map8));
-  if (!m) abort();
+  if (!m) abort(); /* out of memory */
 
   if (!nochar_map) {
     /* initialize the shared array for second level u16 mapping */
     nochar_map = (U16*)malloc(sizeof(U16)*256);
-    if (!nochar_map) abort();
+    if (!nochar_map) abort();  /* out of memory */
     for (i = 0; i < 256; i++)
       nochar_map[i] = NOCHAR;
   }
 
   for (i = 0; i < 256; i++) {
-    m->to_16[i]  = NOCHAR;
+    m->to_16[i] = NOCHAR;
     m->to_8[i]  = nochar_map;
   }
-  m->nomap8 = 0;
-  m->nomap16 = 0;
+
+  m->def_to8  = NOCHAR;
+  m->def_to16 = NOCHAR;
+  m->cb_to8   = 0;
+  m->cb_to16  = 0;
 
   num_maps++;
   return m;
@@ -46,7 +49,7 @@ map8_addpair(Map8* m, U8 u8, U16 u16)
   if (himap == nochar_map) {
     int i;
     U16* map = (U16*)malloc(sizeof(U16)*256);
-    if (!map) abort();
+    if (!map) abort(); /* out of memory */
     for (i = 0; i < 256; i++) {
       map[i] = NOCHAR;
     }
@@ -55,7 +58,7 @@ map8_addpair(Map8* m, U8 u8, U16 u16)
   } else if (himap[lo] == NOCHAR)
     himap[lo] = u8;
   if (m->to_16[u8] == NOCHAR)
-    m->to_16[u8] = u16;
+    m->to_16[u8] = htons(u16);
 }
 
 
@@ -202,17 +205,19 @@ U16* map8_to_str16(Map8* m, U8* str8, U16* str16, int len, int* rlen)
   while (len--) {
     U16 c = map8_to_char16(m, *str8);
     if (c != NOCHAR) {
-      *tmp16++ = htons(c);
+      *tmp16++ = c;
     } else {
-      if (m->nomap8) {
-	c = (m->nomap8)(*str8);
+      if (m->def_to16 != NOCHAR)
+	*tmp16++ = m->def_to16;
+      else if (m->cb_to16) {
+	c = (m->cb_to16)(*str8);
 	if (c != NOCHAR)
 	  *tmp16++ = htons(c);
       }
     }
     str8++;
   }
-  *tmp16 = 0x0000;  /* NUL terminate */
+  *tmp16 = 0x0000;  /* NUL16 terminate */
   if (rlen) {
     *rlen = tmp16 - str16;
   }
@@ -240,13 +245,15 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
     if (c != NOCHAR && c <= 0xFF) {
       *tmp8++ = (U8)c;
     } else {
-      if (m->nomap16) {
-	c = (m->nomap16)(ntohs(*str16));
+      if (m->def_to8 != NOCHAR)
+	*tmp8++ = (U8)m->def_to8;
+      else if (m->cb_to8) {
+	c = (m->cb_to8)(ntohs(*str16));
 	if (c != NOCHAR && c <= 0xFF)
 	  *tmp8++ = (U8)c;
       }
     }
-    *str16++;
+    str16++;
   }
   *tmp8 = '\0';  /* NUL terminate */
   if (rlen) {
@@ -255,6 +262,67 @@ U8* map8_to_str8(Map8* m, U16* str16, U8* str8, int len, int* rlen)
   return str8;
 }
 
+
+U8* map8_recode8(Map8* m1, Map8* m2, U8* from, U8* to, int len, int* rlen)
+{
+  U8* tmp;
+  U16 uc;
+  U16 u8;  /* need U16 to represent NOCHAR */
+
+  if (from == 0)
+    return 0;
+  if (len < 0) {
+    len = strlen(from);
+  }
+  if (to == 0) {
+    to = (U8*)malloc(sizeof(U8)*(len+1));
+    if (!to) abort();
+  }
+
+  tmp = to;
+  while (len--) {
+    /* First translate to common Unicode representation */
+    U16 uc = map8_to_char16(m1, *from);
+    if (uc == NOCHAR) {
+      if (m1->def_to16 != NOCHAR)
+	uc = m1->def_to16;
+      else if (m1->cb_to16) {
+	uc = (m1->cb_to16)(*from);
+	if (uc == NOCHAR) {
+	  from++;
+	  continue;  /* no mapping exists for this char */
+	}
+	uc = htons(uc);
+      }
+    }
+    from++;
+
+    /* Then map 'uc' back to the second 8-bit encoding */
+    u8 = map8_to_char8(m2, ntohs(uc));
+    if (u8 == NOCHAR || u8 > 0xFF) {
+      if (m2->def_to8 != NOCHAR)
+	u8 = m2->def_to8;
+      else if (m2->cb_to8) {
+	u8 = (m2->cb_to8)(ntohs(uc));
+	if (u8 == NOCHAR || u8 > 0xFF)
+	  continue;  /* no mapping exists for this char */
+      }
+    }
+    *tmp++ = (U8)u8;
+  }
+
+  *tmp = '\0';  /* NUL terminate */
+  if (rlen) {
+    *rlen = tmp - to;
+  }
+  return to;
+}
+
+
+int map8_empty_block(Map8* m, U8 block)
+{
+  return m->to_8[block] == nochar_map;
+}
 
 
 #ifdef DEBUGGING

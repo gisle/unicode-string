@@ -8,6 +8,7 @@ WriteMakefile(
     'DEFINE'	   => '-DPERL',
     'INC'	   => '',
     'OBJECT'       => q[Map8$(OBJ_EXT) map8x$(OBJ_EXT)],
+    'EXE_FILES'    => [qw(umap)],
     'PREREQ_PM'    => {	
 	                 'Unicode::String' => 2.00,
 		      },

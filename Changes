@@ -1,6 +1,6 @@
-1997-07-08   Gisle Aas <aas@sn.no>
+1997-07-10   Gisle Aas <aas@sn.no>
 
-   Release 19970708
+   Release 19970710
 
    Now most basic conversion routines and string manipulation works.
    Documentation is starting to appear.

@@ -7,7 +7,7 @@ eval {
    $u = $greek->tou("זרו");
 };
 if ($@) {
-    if ($@ =~ /^Can't locate Unicode::String/) {
+    if ($@ =~ /^Can't locate Unicode\/String/) {
         print "1..0\n";
     }
     print $@;

@@ -1,4 +1,4 @@
-print "1..28\n";
+print "1..36\n";
 
 use Unicode::String qw(latin1 ucs4 utf16 utf8 utf7);
 
@@ -221,8 +221,6 @@ $text = <<'EOT';
    5 January 1993
 EOT
 
-#$Unicode::String::UTF7_OPTIONAL_DIRECT_CHARS = 0;
-
 $u = utf7($text);
 $utf = $u->utf7;
 
@@ -237,4 +235,27 @@ unless ($utf eq $text) {
 
 print "not " unless $utf eq $text;
 print "ok 28\n";
+
+# Test encoding of different encoding byte lengths
+for my $len (1 .. 6) {
+   $u = Unicode::String->new;
+   $u->pack(map {1000 + $_} 1 .. $len);
+   print $u->hex, "\n";
+   print $u->utf7, "\n";
+   $u2 = utf7($u->utf7);
+   print "not " unless $u->utf16 eq $u2->utf16;
+   print "ok ", 28+$len, "\n";
+}
+
+$Unicode::String::UTF7_OPTIONAL_DIRECT_CHARS = 0;
+
+$u = latin1("a=4!זרו");
+$utf = $u->utf7;
+
+print "not " if $utf7 =~ /[=!]/;
+print "ok 35\n";
+
+print "not " unless utf7($utf)->latin1 eq "a=4!זרו";
+print "ok 36\n";
+
 

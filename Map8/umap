@@ -29,6 +29,7 @@ my $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
 
 my $list;
 my $strict;
+my $verbose;
 my $def8;
 my $def16;
 my $before;
@@ -37,6 +38,7 @@ my $after;
 GetOptions('version' => \&print_version,
 	   'help'    => \&usage,
 	   'list:s'  => \$list,
+	   'verbose' => \$verbose,
 	   'strict!' => \$strict,
 	   'def8=i'  => \$def8,
 	   'def16=i' => \$def16,
@@ -65,7 +67,7 @@ for ($before, $after) {
 }
 usage() if @ARGV;
 
-print STDERR "$before --> $after\n";
+print STDERR "$before --> $after\n" if $verbose;
 
 
 #------------------------------------------------------------------
@@ -144,7 +146,7 @@ sub list_charset
     for (my $i = 0; $i < 256; $i++) {
 	my $u = $m->to_char16($i);
 	if ($u == Unicode::Map8::NOCHAR()) {
-	    #push(@res8, sprintf "# 0x%02X unmapped\n", $i);
+	    push(@res8, sprintf "# 0x%02X unmapped\n", $i) if $verbose;
 	} else {
 	    push(@res8, sprintf "0x%02X 0x%04X   # %s\n", $i, $u,
 		                               Unicode::CharName::uname($u));

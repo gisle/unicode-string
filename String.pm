@@ -40,6 +40,7 @@ my %stringify = (
 
 my $stringify_as = \&utf8;
 
+
 sub new
 {
     #_dump_arg("new", @_);
@@ -49,6 +50,7 @@ sub new
     &$stringify_as($self, shift) if @_;
     $self;
 }
+
 
 sub repeat
 {
@@ -88,6 +90,7 @@ sub concat
     bless \$str, $class;
 }
 
+
 sub append
 {
     #_dump_arg("append", @_);
@@ -98,6 +101,7 @@ sub append
     $$self .= $$other;
     $self;
 }
+
 
 sub copy
 {
@@ -114,6 +118,7 @@ sub as_string
     &$stringify_as($_[0]);
 }
 
+
 sub as_bool
 {
     # This is different from perl's normal behaviour by not letting
@@ -121,6 +126,7 @@ sub as_bool
     my $self = shift;
     $$self ? 1 : "";
 }
+
 
 sub as_num
 {
@@ -165,6 +171,10 @@ sub utf16
     my $old = $$self;
     if (@_) {
 	$$self = shift;
+	if ((length($$self) % 2) != 0) {
+	    warn "Uneven UTF16 data";
+	    $$self .= '\0';
+	}
 	if ($$self =~ /^\xFF\xFE/) {
 	    # the string needs byte swapping
 	    $$self = pack("n*", unpack("v*", $$self));
@@ -174,85 +184,6 @@ sub utf16
 }
 
 *ucs2 = \&utf16;
-
-
-sub ucs4_inperl
-{
-    my $self = shift;
-    unless (ref $self) {
-	my $u = new Unicode::String;
-	$u->ucs4($self);
-	return $u;
-    }
-    my $old = pack("N*", $self->ord);
-    if (@_) {
-	$$self = "";
-	for (unpack("N*", shift)) {
-	    $self->append(uchr($_));
-	}
-    }
-    $old;
-}
-
-
-sub utf8_inperl
-{
-    my $self = shift;
-    unless (ref $self) {
-	# act as ctor
-	my $u = new Unicode::String;
-	$u->utf8($self);
-	return $u;
-    }
-
-    my $old;
-    if (defined($$self) && defined wantarray) {
-	# encode UTF-8
-	my $uc;
-	for $uc (unpack("n*", $$self)) {
-	    if ($uc < 0x80) {
-		# 1 byte representation
-		$old .= chr($uc);
-	    } elsif ($uc < 0x800) {
-		# 2 byte representation
-		$old .= chr(0xC0 | ($uc >> 6)) .
-                        chr(0x80 | ($uc & 0x3F));
-	    } else {
-		# 3 byte representation
-		$old .= chr(0xE0 | ($uc >> 12)) .
-		        chr(0x80 | (($uc >> 6) & 0x3F)) .
-			chr(0x80 | ($uc & 0x3F));
-	    }
-	}
-    }
-
-    if (@_) {
-	if (defined $_[0]) {
-	    $$self = "";
-	    my $bytes = shift;
-	    $bytes =~ s/^[\200-\277]+//;  # can't start with 10xxxxxx
-	    while (length $bytes) {
-		if ($bytes =~ s/^([\000-\177]+)//) {
-		    $$self .= pack("n*", unpack("C*", $1));
-		} elsif ($bytes =~ s/^([\300-\337])([\200-\277])//) {
-		    my($b1,$b2) = (ord($1), ord($2));
-		    $$self .= pack("n", (($b1 & 0x1F) << 6) | ($b2 & 0x3F));
-		} elsif ($bytes =~ s/^([\340-\357])([\200-\277])([\200-\277])//) {
-		    my($b1,$b2,$b3) = (ord($1), ord($2), ord($3));
-		    $$self .= pack("n", (($b1 & 0x0F) << 12) |
-                                        (($b2 & 0x3F) <<  6) |
-				         ($b3 & 0x3F));
-		} else {
-		    croak "Bad UTF-8 data";
-		}
-	    }
-	} else {
-	    $$self = undef;
-	}
-    }
-
-    $old;
-}
 
 
 sub utf7   # rfc1642
@@ -331,32 +262,6 @@ sub utf7   # rfc1642
 }
 
 
-sub latin1_inperl
-{
-    my $self = shift;
-    unless (ref $self) {
-	# act as ctor
-	my $u = new Unicode::String;
-	$u->latin1($self);
-	return $u;
-    }
-
-    my $old;
-    # XXX: should really check that none of the chars > 256
-    $old = pack("C*", unpack("n*", $$self)) if defined $$self;
-
-    if (@_) {
-	# set the value
-	if (defined $_[0]) {
-	    $$self = pack("n*", unpack("C*", $_[0]));
-	} else {
-	    $$self = undef;
-	}
-    }
-    $old;
-}
-
-
 sub hex
 {
     my $self = shift;
@@ -385,7 +290,7 @@ sub hex
 sub length
 {
     my $self = shift;
-    length($$self) / 2;
+    int(length($$self) / 2);
 }
 
 
@@ -518,6 +423,7 @@ sub rindex
     die "NYI";
 }
 
+
 sub chop
 {
     my $self = shift;
@@ -529,7 +435,8 @@ sub chop
     undef;
 }
 
-# Ideas to be implemented
+
+# XXX: Ideas to be implemented
 sub scan;
 sub reverse;
 
@@ -621,3 +528,115 @@ This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut
+
+
+#
+# Some old code that is not used any more (because the methods are
+# now implemented as XS)
+#
+
+sub ucs4_inperl
+{
+    my $self = shift;
+    unless (ref $self) {
+	my $u = new Unicode::String;
+	$u->ucs4($self);
+	return $u;
+    }
+    my $old = pack("N*", $self->ord);
+    if (@_) {
+	$$self = "";
+	for (unpack("N*", shift)) {
+	    $self->append(uchr($_));
+	}
+    }
+    $old;
+}
+
+
+sub utf8_inperl
+{
+    my $self = shift;
+    unless (ref $self) {
+	# act as ctor
+	my $u = new Unicode::String;
+	$u->utf8($self);
+	return $u;
+    }
+
+    my $old;
+    if (defined($$self) && defined wantarray) {
+	# encode UTF-8
+	my $uc;
+	for $uc (unpack("n*", $$self)) {
+	    if ($uc < 0x80) {
+		# 1 byte representation
+		$old .= chr($uc);
+	    } elsif ($uc < 0x800) {
+		# 2 byte representation
+		$old .= chr(0xC0 | ($uc >> 6)) .
+                        chr(0x80 | ($uc & 0x3F));
+	    } else {
+		# 3 byte representation
+		$old .= chr(0xE0 | ($uc >> 12)) .
+		        chr(0x80 | (($uc >> 6) & 0x3F)) .
+			chr(0x80 | ($uc & 0x3F));
+	    }
+	}
+    }
+
+    if (@_) {
+	if (defined $_[0]) {
+	    $$self = "";
+	    my $bytes = shift;
+	    $bytes =~ s/^[\200-\277]+//;  # can't start with 10xxxxxx
+	    while (length $bytes) {
+		if ($bytes =~ s/^([\000-\177]+)//) {
+		    $$self .= pack("n*", unpack("C*", $1));
+		} elsif ($bytes =~ s/^([\300-\337])([\200-\277])//) {
+		    my($b1,$b2) = (ord($1), ord($2));
+		    $$self .= pack("n", (($b1 & 0x1F) << 6) | ($b2 & 0x3F));
+		} elsif ($bytes =~ s/^([\340-\357])([\200-\277])([\200-\277])//) {
+		    my($b1,$b2,$b3) = (ord($1), ord($2), ord($3));
+		    $$self .= pack("n", (($b1 & 0x0F) << 12) |
+                                        (($b2 & 0x3F) <<  6) |
+				         ($b3 & 0x3F));
+		} else {
+		    croak "Bad UTF-8 data";
+		}
+	    }
+	} else {
+	    $$self = undef;
+	}
+    }
+
+    $old;
+}
+
+
+
+
+sub latin1_inperl
+{
+    my $self = shift;
+    unless (ref $self) {
+	# act as ctor
+	my $u = new Unicode::String;
+	$u->latin1($self);
+	return $u;
+    }
+
+    my $old;
+    # XXX: should really check that none of the chars > 256
+    $old = pack("C*", unpack("n*", $$self)) if defined $$self;
+
+    if (@_) {
+	# set the value
+	if (defined $_[0]) {
+	    $$self = pack("n*", unpack("C*", $_[0]));
+	} else {
+	    $$self = undef;
+	}
+    }
+    $old;
+}

@@ -1,6 +1,6 @@
 package Unicode::String;
 
-# Copyright (c) 1997, Gisle Aas.
+# Copyright 1997-1999, Gisle Aas.
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT_OK $UTF7_OPTIONAL_DIRECT_CHARS);
@@ -12,7 +12,7 @@ require DynaLoader;
 
 @EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr uhex);
 
-$VERSION = '2.02'; # $Id$
+$VERSION = '2.03'; # $Id$
 
 $UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 
@@ -749,7 +749,7 @@ http://www.unicode.org/
 
 =head1 COPYRIGHT
 
-Copyright 1997-1998 Gisle Aas.
+Copyright 1997-1999 Gisle Aas.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

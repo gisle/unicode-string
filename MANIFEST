@@ -11,3 +11,4 @@ t/encoding.t
 t/ord.t
 t/op.t
 t/stringify.t
+META.yml                                 Module meta-data (added by MakeMaker)

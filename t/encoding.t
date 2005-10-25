@@ -86,11 +86,11 @@ $old = $u->utf8("def");
 print "not " unless $old eq "abc" && $u->latin1 eq "def";
 print "ok 15\n";
 
-$u = utf16("\0a\0å\1\0\7a\8\0aa");
+$u = utf16("\0a\0å\1\0\7a\0aa");
 print "UTF16: ", $u->hex, "\n";
 $x = unpack("H*", $u->utf8);
 print "UTF8x: $x\n";
-print "not " unless $x eq "61c3a5c480dda1e3a080e685a1";  #XXX check this up
+print "not " unless $x eq "61c3a5c480dda161e68480";
 print "ok 16\n";
 
 $u2 = utf8($u->utf8);

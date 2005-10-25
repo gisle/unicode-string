@@ -282,11 +282,12 @@ sub utf7   # rfc1642
 	    }
 	}
     }
-    
+
     if (@_) {
 	# decode
 	my $len = length($_[0]);
 	$$self = "";
+	pos($_[0]) = 0;
 	while (pos($_[0]) < $len) {
 	    if ($_[0] =~ /\G([^+]+)/gc) {
 		$self->append(latin1($1));

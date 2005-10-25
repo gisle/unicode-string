@@ -313,7 +313,7 @@ sub ublock
 
 sub _init_names
 {
-    keys %NAMES = 6588;  # preextent
+    keys %NAMES = 16351;  # preextent
     local($_);
     while (<DATA>) {
 	chop;

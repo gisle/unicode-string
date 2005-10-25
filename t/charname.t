@@ -42,9 +42,5 @@ print "ok 10\n";
 print "not " unless ublock(0xFFFF) eq "Specials";
 print "ok 11\n";
 
-print "not " if defined ublock(0xFE00);
+print "not " if defined ublock(0x30000);
 print "ok 12\n";
-
-
-
-

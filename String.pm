@@ -10,7 +10,16 @@ require Exporter;
 require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 
-@EXPORT_OK = qw(utf16 utf8 utf7 ucs2 ucs4 latin1 uchr uhex byteswap2 byteswap4);
+@EXPORT_OK = qw(
+    utf16 utf16le utf16be ucs2
+    utf8
+    utf7
+    ucs4 utf32 utf32be utf32le
+    latin1
+    uchr uhex
+
+    byteswap2 byteswap4
+);
 
 $VERSION = '2.07'; # $Id$
 
@@ -30,10 +39,15 @@ use overload '""'   => \&as_string,
 my %stringify = (
    unicode => \&utf16,
    utf16   => \&utf16,
+   utf16be => \&utf16,
+   utf16le => \&utf16le,
    ucs2    => \&utf16,
    utf8    => \&utf8,
    utf7    => \&utf7,
    ucs4    => \&ucs4,
+   utf32   => \&ucs4,
+   utf32be => \&ucs4,
+   utf32le => \&utf32le,
    latin1  => \&latin1,
   'hex'    => \&hex,
 );
@@ -42,6 +56,9 @@ my $stringify_as = \&utf8;
 
 # some aliases
 *ucs2 = \&utf16;
+*utf16be = \&utf16;
+*utf32 = \&ucs4;
+*utf32be = \&ucs4;
 *uhex = \&hex;
 *uchr = \&chr;
 
@@ -181,12 +198,43 @@ sub utf16
 	}
 	if ($$self =~ /^\xFF\xFE/) {
 	    # the string needs byte swapping
-	    $$self = pack("n*", unpack("v*", $$self));
+	    $$self = byteswap2($$self);
 	}
     }
     $old;
 }
 
+
+sub utf16le
+{
+    my $self = shift;
+    unless (ref $self) {
+	my $u = new Unicode::String;
+	$u->utf16(byteswap2($self));
+	return $u;
+    }
+    my $old = byteswap2($$self);
+    if (@_) {
+        $self->utf16(byteswap2(shift));
+    }
+    $old;
+}
+
+
+sub utf32le
+{
+    my $self = shift;
+    unless (ref $self) {
+	my $u = new Unicode::String;
+	$u->ucs4(byteswap4($self));
+	return $u;
+    }
+    my $old = byteswap4($self->ucs4);
+    if (@_) {
+        $self->ucs4(byteswap4(shift));
+    }
+    $old;
+}
 
 
 sub utf7   # rfc1642
@@ -467,7 +515,7 @@ __END__
 
 =head1 NAME
 
-Unicode::String - String of Unicode characters (UCS2/UTF16)
+Unicode::String - String of Unicode characters (UTF-16BE)
 
 =head1 SYNOPSIS
 
@@ -476,8 +524,10 @@ Unicode::String - String of Unicode characters (UCS2/UTF16)
  $u .= utf8("encoding scheme for written characters and text");
 
  # convert to various external formats
- print $u->ucs4;      # 4 byte characters
+ print $u->utf32;     # 4 byte characters
+ print $u->utf32le;   # 4 byte little endian characters
  print $u->utf16;     # 2 byte characters + surrogates
+ print $u->utf16le;   # 2 byte little endian characters
  print $u->utf8;      # 1-4 byte characters
  print $u->utf7;      # 7-bit clean format
  print $u->latin1;    # lossy
@@ -521,19 +571,17 @@ characters.  The Unicode Standard is a fixed-width, uniform encoding
 scheme for written characters and text.  This encoding treats
 alphabetic characters, ideographic characters, and symbols
 identically, which means that they can be used in any mixture and with
-equal facility.  Unicode is modeled on the ASCII character set, but
-uses a 16-bit encoding to support full multilingual text.
+equal facility.
 
 Internally a I<Unicode::String> object is a string of 2 byte values in
 network byte order (big-endian).  The class provide various methods to
 convert from and to various external formats, and all string
 manipulations are made on strings in this the internal 16-bit format.
 
-The functions utf16(), utf8(), utf7(), ucs2(), ucs4(), latin1(),
-uchr() can be imported from the I<Unicode::String> module and will
-work as constructors initializing strings of the corresponding
-encoding.  The ucs2() and utf16() are really aliases for the same
-function.
+The functions utf32(), utf32be(), utf32le(), utf16(), utf16be(),
+utf16le(), utf8(), utf7(), latin1(), uhex(), uchr() can be imported
+from the I<Unicode::String> module and will work as constructors
+initializing strings of the corresponding encoding.
 
 The I<Unicode::String> objects overload various operators, so they
 will normally work like plain 8-bit strings in Perl.  This includes
@@ -554,8 +602,8 @@ strings.  It define which encoding to assume for the argument of the
 I<Unicode::String> constructor new().  Without an encoding argument,
 stringify_as() returns the current encoding ctor function.  The
 encoding argument ($enc) is a string with one of the following values:
-"ucs4", "ucs2", "utf16", "utf8", "utf7", "latin1", "hex".  The default
-is "utf8".
+"ucs4", "utf32", "utf32be", "utf32le", "ucs2", "utf16", "utf16be",
+"utf16le", "utf8", "utf7", "latin1", "hex".  The default is "utf8".
 
 =item $us = Unicode::String->new( [$initial_value] )
 
@@ -571,6 +619,10 @@ calling them with an appropriate encoded argument.
 
 =item $us->ucs4( [$newval] )
 
+=item $us->utf32( [$newval] )
+
+=item $us->utf32be( [$newval] )
+
 The UCS-4 encoding use 32 bits per character.  The main benefit of this
 encoding is that you don't have to deal with surrogate pairs.  Encoded
 as a Perl string we use 4-bytes in network byte order for each
@@ -581,9 +633,16 @@ argument decodes the UCS-4 string and set this as the new value of $us.
 The characters in $newval must be in the range 0x0 .. 0x10FFFF.
 Characters outside this range is ignored.
 
+=item $us->utf32le( [$newval] )
+
+Same as ucs4() method but use the little endian byte order for each
+character.
+
 =item $us->ucs2( [$newval] )
 
 =item $us->utf16( [$newval] )
+
+=item $us->utf16be( [$newval] )
 
 The ucs2() and utf16() are really just different names for the same
 method.  The UCS-2 encoding use 16 bits per character.  The UTF-16
@@ -595,6 +654,11 @@ character (or surrogate code).
 
 The ucs2() method always return the old value of $us and if given an
 argument set this as the new value of $us.
+
+=item $us->utf16le( [$newval] )
+
+Same as ucs2() method but use the little endian byte order for each
+character.
 
 =item $us->utf8( [$newval] )
 
@@ -791,7 +855,7 @@ http://www.unicode.org/
 
 =head1 COPYRIGHT
 
-Copyright 1997-2000 Gisle Aas.
+Copyright 1997-2000,2005 Gisle Aas.
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

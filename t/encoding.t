@@ -3,9 +3,9 @@
 use strict;
 use Test qw(plan ok);
 
-plan tests => 44;
+plan tests => 59;
 
-use Unicode::String qw(latin1 ucs4 utf16 utf8 utf7);
+use Unicode::String qw(latin1 ucs4 utf32le utf16 utf16le utf8 utf7);
 
 #use Devel::Dump;
 
@@ -19,7 +19,13 @@ my $u = latin1("abcæøå");
 ok($u->latin1, "abcæøå");
 ok($u->length, 6);
 ok($u->ucs4, "\0\0\0a\0\0\0b\0\0\0c\0\0\0æ\0\0\0ø\0\0\0å");
+ok($u->utf32, "\0\0\0a\0\0\0b\0\0\0c\0\0\0æ\0\0\0ø\0\0\0å");
+ok($u->utf32be, "\0\0\0a\0\0\0b\0\0\0c\0\0\0æ\0\0\0ø\0\0\0å");
+ok($u->utf32le, "a\0\0\0b\0\0\0c\0\0\0æ\0\0\0ø\0\0\0å\0\0\0");
 ok($u->utf16, "\0a\0b\0c\0æ\0ø\0å");
+ok($u->utf16be, "\0a\0b\0c\0æ\0ø\0å");
+ok($u->ucs2, "\0a\0b\0c\0æ\0ø\0å");
+ok($u->utf16le, "a\0b\0c\0æ\0ø\0å\0");
 ok($u->utf8, "abcÃ¦Ã¸Ã¥");
 ok($u->utf7, "abc+AOYA+ADl-");
 ok($u->hex, "U+0061 U+0062 U+0063 U+00e6 U+00f8 U+00e5");
@@ -35,7 +41,6 @@ ok($u->latin1, "ghi");
 
 
 $u = utf16("aa\0bcc\0d");
-print $u->hex, "\n";
 
 print "Expect 2 lines of warnings...\n";
 my $x = $u->latin1;
@@ -46,7 +51,6 @@ ok($x, "bd");
 
 $x = "\0\0\0a\0\0bb\0\3cc\0\1\0\2\0\0\0\0";
 $u = ucs4($x);
-print $u->hex, "\n";
 
 ok($u->length, 7);
 ok($u->hex, "U+0061 U+6262 U+d898 U+df63 U+d800 U+dc02 U+0000");
@@ -56,9 +60,13 @@ $a = $u->ucs4("");
 ok($a, $x);
 ok($u->length, 0);
 
+$u = utf32le("a\0\0\0" . "bb\0\0" . "cc\3\0" . "\2\0\1\0" . "\0\0\0\0");
+ok($u->length, 7);
+ok($u->hex, "U+0061 U+6262 U+d898 U+df63 U+d800 U+dc02 U+0000");
+ok($u->ucs4, $x);
+
 print "Expect 2 lines of warnings...\n";
 $u->ucs4("    \0\x10\xff\xff\0\x11\0\0\0\0\0\0");
-print $u->hex, "\n";
 ok($u->hex, "U+dbff U+dfff U+0000");
 
 #--- Test UTF8 encoding ---
@@ -73,9 +81,7 @@ ok($old, "abc");
 ok($u->latin1, "def");
 
 $u = utf16("\0a\0å\1\0\7a\0aa");
-print "UTF16: ", $u->hex, "\n";
 $x = unpack("H*", $u->utf8);
-print "UTF8x: $x\n";
 ok($x, "61c3a5c480dda161e68480");
 
 my $u2 = utf8($u->utf8);
@@ -85,20 +91,14 @@ ok($u->utf16, $u2->utf16);
 print "Surrogates...\n";
 
 $u = ucs4("\0\1\0\0\0\x10\xFF\xFF");
-print $u->hex, "\n";
 $x = unpack("H*", $u->utf8);
-print "UTF8: $x\n";
 ok($x, "f0908080f48fbfbf");
 
 $u->utf8(pack("H*", $x));
-print $u->hex, "\n";
-print unpack("H*", $u->ucs4), "\n";
-
 ok($u->ucs4, "\0\1\0\0\0\x10\xFF\xFF");
 
 print "Expect a warning with this incomplete surrogate pair...\n";
 $u = utf16("\xd8\x00");
-print $u->hex, "\n";
 $u2 = utf8($u->utf8);
 ok($u2->hex, "U+d800");
 
@@ -125,15 +125,10 @@ ok($u->utf8, "abcdef");
 #            Hi Mom +Jjo-!
 
 $u = utf7("A+ImIDkQ.");
-print "HEX: ", $u->hex, "\n";
-print "UTF7: ", $u->utf7, "\n";
 ok($u->hex, "U+0041 U+2262 U+0391 U+002e");
 
 my $utf7 = $u->utf7("Hi Mom +Jjo-!");
 ok($utf7, qr/^A\+ImIDkQ-?\.$/);
-
-print "HEX: ", $u->hex, "\n";
-print "UTF7: ", $u->utf7, "\n";
 
 ok($u->hex, "U+0048 U+0069 U+0020 U+004d U+006f U+006d U+0020 U+263a U+0021");
 ok($u->utf7 eq "Hi Mom +Jjo-!" || $u->utf7 eq "Hi Mom +JjoAIQ-");
@@ -213,8 +208,6 @@ ok($utf, $text);
 for my $len (1 .. 6) {
    $u = Unicode::String->new;
    $u->pack(map {1000 + $_} 1 .. $len);
-   print $u->hex, "\n";
-   print $u->utf7, "\n";
    $u2 = utf7($u->utf7);
    ok($u->utf16, $u2->utf16);
 }
@@ -230,9 +223,18 @@ ok(utf7($utf)->latin1, "a=4!æøå");
 #--- Swapped bytes ---
 
 $u = utf16("ÿþa\0b\0c\0");
-print $u->hex, "\n";
+ok($u->hex, "U+feff U+0061 U+0062 U+0063");
 ok($u->latin1, "abc");
 
 $u = utf16("þÿ\0a\0b\0c");
-print $u->hex, "\n";
+ok($u->hex, "U+feff U+0061 U+0062 U+0063");
 ok($u->latin1, "abc");
+
+$u = utf16le("ÿþa\0b\0c\0");
+ok($u->hex, "U+feff U+0061 U+0062 U+0063");
+ok($u->latin1, "abc");
+
+$u = utf16le("þÿ\0a\0b\0c");
+ok($u->hex, "U+feff U+0061 U+0062 U+0063");
+ok($u->latin1, "abc");
+

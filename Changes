@@ -1,3 +1,14 @@
+2005-10-25   Gisle Aas <gisle@ActiveState.com>
+
+   Release 2.08
+
+   Unicode::String now provide utf16le() and utf32le() constructors.
+   Corresponding methods also available.
+
+   Unicode::CharName updated with Unicode 4.1 data.
+
+
+
 2003-03-10   Gisle Aas <gisle@ActiveState.com>
 
    Release 2.07

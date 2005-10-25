@@ -75,8 +75,6 @@ sub uname {
 		$JAMO_SHORT_NAME{$_} || " U+$_ ";
             } @s;
 	    return join("", "HANGUL SYLLABLE ", @s)
-	} elsif ($code > 0xFFFF) {
-	    return undef;  # outside Unicode range
 	}
     }
     _init_names() unless defined %NAMES;

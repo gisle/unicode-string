@@ -1,4 +1,4 @@
-print "1..12\n";
+print "1..13\n";
 
 use Unicode::CharName qw(ublock uname);
 
@@ -44,3 +44,6 @@ print "ok 11\n";
 
 print "not " if defined ublock(0x30000);
 print "ok 12\n";
+
+print "not " unless uname(0x1d1cf) eq "MUSICAL SYMBOL CROIX";
+print "ok 13\n";

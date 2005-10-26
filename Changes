@@ -4,6 +4,8 @@
 
    Simplified and reworked documentation.
 
+   Unicode::CharName::uname() did not work for chars > 0xFFFF.
+
 
 
 2005-10-25   Gisle Aas <gisle@ActiveState.com>

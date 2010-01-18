@@ -1,5 +1,4 @@
-/* $Id$
- *
+/*
  * Copyright 1998, Gisle Aas.
  *
  * This library is free software; you can redistribute it and/or

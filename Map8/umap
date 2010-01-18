@@ -70,7 +70,7 @@ modify it under the same terms as Perl itself.
 use strict;
 use Getopt::Long  qw(GetOptions);
 
-my $VERSION = sprintf("%d.%02d", q$Revision$ =~ /(\d+)\.(\d+)/);
+my $VERSION = "1.05";
 
 my $list;
 my $strict;

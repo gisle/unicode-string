@@ -9,8 +9,8 @@
 
 #ifdef PERL
 #include "EXTERN.h"
-#include "XSUB.h"
 #include "perl.h"
+#include "XSUB.h"
 #else
 typedef unsigned long   U32;
 typedef unsigned short  U16;

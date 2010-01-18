@@ -2,6 +2,10 @@
 
    Release 0.13
 
+   Header order tweak to make it compile with Strawberry Perl [RT#50443]
+
+   Get rid of CVS artifacts
+
 
 
 2002-12-27   Gisle Aas <gisle@ActiveState.com>

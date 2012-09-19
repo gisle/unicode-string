@@ -77,7 +77,7 @@ sub uname {
 	    return join("", "HANGUL SYLLABLE ", @s)
 	}
     }
-    _init_names() unless defined %NAMES;
+    _init_names() unless %NAMES;
     $NAMES{sprintf("%04X",$code)}
 }
 

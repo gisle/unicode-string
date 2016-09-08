@@ -21,7 +21,7 @@ require DynaLoader;
     byteswap2 byteswap4
 );
 
-$VERSION = '2.09'; # $Id$
+$VERSION = '2.10';
 
 $UTF7_OPTIONAL_DIRECT_CHARS ||= 1;
 

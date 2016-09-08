@@ -1,3 +1,11 @@
+2016-09-08   Gisle Aas <gisle@ActiveState.com>
+
+   Release 2.10
+
+   Applied patch from Michael Joyce that is required to make the
+   test pass for perl-5.24
+
+
 2005-10-26   Gisle Aas <gisle@ActiveState.com>
 
    Release 2.09
